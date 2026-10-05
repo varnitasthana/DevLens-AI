@@ -36,6 +36,109 @@ main {
   padding: 12vh 8vw;
 }
 
+button {
+  border: 0;
+  border-radius: 0.4rem;
+  background: #38bdf8;
+  color: #082f49;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+}
+
+button:hover {
+  background: #7dd3fc;
+}
+
+h2 {
+  font-size: 2rem;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.section-heading,
+.form-actions {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.repository-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.repository-card,
+.detail-card,
+.repository-form {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 0.6rem;
+  padding: 1.25rem;
+}
+
+.repository-card {
+  color: #e5e7eb;
+  display: grid;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.repository-card span,
+.repository-card small,
+.empty-state,
+dd {
+  color: #9ca3af;
+}
+
+.repository-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 600px;
+}
+
+label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+input,
+textarea {
+  background: #111827;
+  border: 1px solid #4b5563;
+  border-radius: 0.35rem;
+  color: #f9fafb;
+  font: inherit;
+  padding: 0.7rem;
+}
+
+textarea {
+  min-height: 120px;
+}
+
+.button-muted,
+.button-link {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+.button-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.button-link {
+  margin-bottom: 1.5rem;
+}
+
+dt {
+  color: #9ca3af;
+  font-weight: 700;
+  margin-top: 1rem;
+}
+
 .hero {
   max-width: 720px;
 }

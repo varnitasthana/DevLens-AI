@@ -1,11 +1,11 @@
 import { AppLayout } from "./layouts/AppLayout";
-import { HomePage } from "./pages/HomePage";
+import { RepositoriesPage } from "./pages/RepositoriesPage";
 import "./styles.css";
 
 export function App() {
   return (
     <AppLayout>
-      <HomePage />
+      <RepositoriesPage />
     </AppLayout>
   );
 }

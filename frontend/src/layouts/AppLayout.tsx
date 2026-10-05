@@ -5,7 +5,7 @@ export function AppLayout({ children }: PropsWithChildren) {
     <div className="app-shell">
       <header className="app-header">
         <strong>DevLens</strong>
-        <span>Developer intelligence, built incrementally.</span>
+        <span>Repository intelligence, built incrementally.</span>
       </header>
       <main>{children}</main>
     </div>
