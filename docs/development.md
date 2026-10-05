@@ -63,6 +63,17 @@ curl.exe -X POST http://localhost:8000/api/v1/repositories/{id}/ingest `
 The ingestion limits are configured through `MAX_ARCHIVE_SIZE_BYTES`,
 `MAX_REPOSITORY_SIZE_BYTES`, `MAX_FILE_SIZE_BYTES`, and `MAX_FILE_COUNT`.
 
+Static analysis can be run from a ZIP upload:
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/v1/repositories/{id}/analyze `
+  -F "upload=@repository.zip"
+```
+
+AI provider settings are optional and are read from `AI_BASE_URL`,
+`AI_API_KEY`, `AI_MODEL`, and `AI_TIMEOUT_SECONDS`. Normal tests use mocked
+providers and do not require credentials.
+
 ## Environment
 
 Start from the root `.env.example` and create a local `.env`. Secrets belong

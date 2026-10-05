@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     max_repository_size_bytes: int = 200 * 1024 * 1024
     max_file_size_bytes: int = 10 * 1024 * 1024
     max_file_count: int = 10_000
+    ai_base_url: str | None = None
+    ai_api_key: str | None = None
+    ai_model: str = "devlens-reviewer"
+    ai_timeout_seconds: float = 20.0
 
     @field_validator("cors_origins", mode="before")
     @classmethod

@@ -47,6 +47,15 @@ persisted. Binary files, unsupported extensions, ignored directories, and
 files exceeding configured limits are not included. Uploaded source code is
 never executed or sent to an LLM.
 
+Phase 5 adds deterministic Python and JavaScript/TypeScript analysis through
+`POST /api/v1/repositories/{id}/analyze`. It analyzes a temporary workspace
+and persists normalized findings with `source="static"`.
+
+Phase 6 adds a provider-neutral AI review abstraction. AI context is filtered
+to supported source files and bounded by per-file and total character limits.
+AI responses are validated with Pydantic and must use `source="ai"`. No AI
+provider is called unless explicitly configured.
+
 ## Remaining deferred work
 
 Repository analyzers, AI providers, authentication, workers, Redis, and GitHub
