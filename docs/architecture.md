@@ -27,7 +27,19 @@ All HTTP errors use the `ErrorResponse` schema and include a request ID. The
 request context middleware accepts or generates `X-Request-ID`, returns it on
 the response, and emits JSON logs.
 
-## Deliberately deferred
+## Persistence
 
-Repository analyzers, AI providers, authentication, persistent domain models,
-workers, Redis, migrations, and GitHub integrations are not part of Phase 1.
+Phase 3 currently persists repository metadata in `repositories`. It includes
+a UUID primary key, unique source URL, name and branch metadata, description,
+UTC timestamps, and an index for lookup by name. SQLAlchemy 2.x sessions use
+the synchronous psycopg driver, and API handlers run database operations via
+`asyncio.to_thread` so blocking database calls do not block the event loop.
+Alembic owns the schema migration.
+
+Repository files, analyses, findings, and users are intentionally deferred
+until their workflows and ownership rules are defined.
+
+## Remaining deferred work
+
+Repository analyzers, AI providers, authentication, workers, Redis, and GitHub
+integrations are not part of Phase 3.

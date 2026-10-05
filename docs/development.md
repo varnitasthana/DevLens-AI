@@ -43,6 +43,16 @@ backend-only test run can override the `check_database` dependency, as the
 health tests do; the application itself does not open a database connection
 until `/api/v1/health/ready` is requested.
 
+For database-backed integration tests, use an isolated PostgreSQL database,
+apply migrations, and set `DATABASE_URL` before running pytest:
+
+```powershell
+$env:DATABASE_URL="postgresql+psycopg://postgres:postgres@localhost:5432/devlens_test"
+cd backend
+python -m alembic upgrade head
+python -m pytest tests -q
+```
+
 ## Environment
 
 Start from the root `.env.example` and create a local `.env`. Secrets belong
