@@ -53,6 +53,16 @@ python -m alembic upgrade head
 python -m pytest tests -q
 ```
 
+Repository ingestion accepts a ZIP upload:
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/v1/repositories/{id}/ingest `
+  -F "upload=@repository.zip"
+```
+
+The ingestion limits are configured through `MAX_ARCHIVE_SIZE_BYTES`,
+`MAX_REPOSITORY_SIZE_BYTES`, `MAX_FILE_SIZE_BYTES`, and `MAX_FILE_COUNT`.
+
 ## Environment
 
 Start from the root `.env.example` and create a local `.env`. Secrets belong

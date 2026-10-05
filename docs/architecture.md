@@ -39,6 +39,14 @@ Alembic owns the schema migration.
 Repository files, analyses, findings, and users are intentionally deferred
 until their workflows and ownership rules are defined.
 
+Phase 4 adds safe ZIP ingestion at
+`POST /api/v1/repositories/{id}/ingest`. Archives are streamed to a temporary
+file, checked for size and safe relative paths, extracted into a temporary
+directory, scanned for supported text languages, and removed after metadata is
+persisted. Binary files, unsupported extensions, ignored directories, and
+files exceeding configured limits are not included. Uploaded source code is
+never executed or sent to an LLM.
+
 ## Remaining deferred work
 
 Repository analyzers, AI providers, authentication, workers, Redis, and GitHub
