@@ -13,6 +13,15 @@ class RepositoryCreate(BaseModel):
     description: str | None = Field(default=None, max_length=10_000)
 
 
+class RepositoryUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    source_url: AnyHttpUrl | None = None
+    default_branch: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=10_000)
+
+
 class RepositoryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

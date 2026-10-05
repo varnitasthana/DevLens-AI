@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pydantic import field_validator
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -8,6 +9,14 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
     database_url: str = "postgresql+psycopg://devlens:devlens-dev-password@localhost:5432/devlens"
+    cors_origins: list[str] = ["http://localhost:5173"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
+        if isinstance(value, str):
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
 
     model_config = SettingsConfigDict(
         env_file=".env",

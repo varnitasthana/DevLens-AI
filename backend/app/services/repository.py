@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.models.repository import Repository
 from app.repositories.repository import RepositoryRepository
-from app.schemas.repository import RepositoryCreate
+from app.schemas.repository import RepositoryCreate, RepositoryUpdate
 
 
 class RepositoryService:
@@ -47,3 +47,19 @@ class RepositoryService:
         repository = self.get(repository_id)
         self.repository.delete(repository)
         self.session.commit()
+
+    def update(self, repository_id: UUID, data: RepositoryUpdate) -> Repository:
+        repository = self.get(repository_id)
+        values = data.model_dump(exclude_unset=True)
+        if "source_url" in values:
+            values["source_url"] = str(values["source_url"])
+        try:
+            repository = self.repository.update(repository, values)
+            self.session.commit()
+            return repository
+        except IntegrityError as exc:
+            self.session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="A repository with this source URL already exists",
+            ) from exc

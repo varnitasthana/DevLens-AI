@@ -40,3 +40,10 @@ class RepositoryRepository:
 
     def delete(self, repository: Repository) -> None:
         self.session.delete(repository)
+
+    def update(self, repository: Repository, values: dict[str, object]) -> Repository:
+        for field, value in values.items():
+            setattr(repository, field, value)
+        self.session.flush()
+        self.session.refresh(repository)
+        return repository

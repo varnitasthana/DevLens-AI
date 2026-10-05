@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
-from app.schemas.repository import RepositoryCreate, RepositoryResponse
+from app.schemas.repository import RepositoryCreate, RepositoryResponse, RepositoryUpdate
 from app.services.repository import RepositoryService
 
 router = APIRouter(prefix="/repositories", tags=["repositories"])
@@ -40,6 +40,16 @@ async def get_repository(
     service: RepositoryService = Depends(get_repository_service),
 ) -> RepositoryResponse:
     repository = await asyncio.to_thread(service.get, repository_id)
+    return RepositoryResponse.model_validate(repository)
+
+
+@router.patch("/{repository_id}", response_model=RepositoryResponse)
+async def update_repository(
+    repository_id: UUID,
+    data: RepositoryUpdate,
+    service: RepositoryService = Depends(get_repository_service),
+) -> RepositoryResponse:
+    repository = await asyncio.to_thread(service.update, repository_id, data)
     return RepositoryResponse.model_validate(repository)
 
 
