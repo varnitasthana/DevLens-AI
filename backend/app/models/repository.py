@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Index, String, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import TimestampedModel
+
+if TYPE_CHECKING:
+    from app.models.repository_file import RepositoryFile
 
 
 class Repository(TimestampedModel):
@@ -17,6 +22,11 @@ class Repository(TimestampedModel):
         String(255), nullable=False, default="main", server_default="main"
     )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    files: Mapped[list["RepositoryFile"]] = relationship(
+        back_populates="repository",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
 
     def __repr__(self) -> str:
-        return f"Repository(id={self.id!r}, name={self.name!r})"
+            return f"Repository(id={self.id!r}, name={self.name!r})"

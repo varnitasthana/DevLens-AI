@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     database_url: str = "postgresql+psycopg://devlens:devlens-dev-password@localhost:5432/devlens"
     cors_origins: list[str] = ["http://localhost:5173"]
+    max_archive_size_bytes: int = 50 * 1024 * 1024
+    max_repository_size_bytes: int = 200 * 1024 * 1024
+    max_file_size_bytes: int = 10 * 1024 * 1024
+    max_file_count: int = 10_000
 
     @field_validator("cors_origins", mode="before")
     @classmethod

@@ -3,3 +3,4 @@ pydantic-settings==2.7.1
 psycopg[binary]==3.2.10
 SQLAlchemy==2.0.45
 uvicorn[standard]==0.34.0
+python-multipart==0.0.20
