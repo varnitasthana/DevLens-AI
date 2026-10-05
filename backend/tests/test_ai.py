@@ -1,8 +1,10 @@
+import httpx
 import pytest
 from pydantic import ValidationError
 
 from app.ai.context import build_context, render_context
-from app.ai.schemas import AIReviewResponse
+from app.ai.provider import OpenAICompatibleProvider
+from app.ai.schemas import AIRequest, AIReviewResponse
 
 
 def test_context_filters_files_and_caps_size() -> None:
@@ -25,3 +27,49 @@ async def test_mock_provider_response_is_structured() -> None:
     from app.ai.service import AIReviewService
     result = await AIReviewService(MockProvider()).review_files({"app.py": "pass"})
     assert result.findings == []
+
+
+@pytest.mark.asyncio
+async def test_openai_compatible_provider_validates_response_and_auth() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.headers["authorization"] == "Bearer test-key"
+        return httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": '{"findings":[]}'}}]},
+        )
+
+    provider = OpenAICompatibleProvider(
+        "https://ai.example.test",
+        "test-key",
+        "test-model",
+        transport=httpx.MockTransport(handler),
+    )
+    result = await provider.review(AIRequest(context="app.py\npass"))
+    assert result.findings == []
+
+
+@pytest.mark.asyncio
+async def test_openai_compatible_provider_rejects_malformed_payload() -> None:
+    provider = OpenAICompatibleProvider(
+        "https://ai.example.test",
+        "test-key",
+        "test-model",
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"choices": []})),
+    )
+    with pytest.raises(RuntimeError, match="invalid or unavailable"):
+        await provider.review(AIRequest(context="app.py\npass"))
+
+
+@pytest.mark.asyncio
+async def test_openai_compatible_provider_handles_timeout() -> None:
+    def timeout(_: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("timed out")
+
+    provider = OpenAICompatibleProvider(
+        "https://ai.example.test",
+        "test-key",
+        "test-model",
+        transport=httpx.MockTransport(timeout),
+    )
+    with pytest.raises(RuntimeError, match="invalid or unavailable"):
+        await provider.review(AIRequest(context="app.py\npass"))

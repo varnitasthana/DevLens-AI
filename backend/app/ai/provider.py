@@ -11,23 +11,34 @@ class AIProvider(Protocol):
 
 
 class OpenAICompatibleProvider:
-    def __init__(self, base_url: str, api_key: str, model: str, timeout_seconds: float = 20) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        model: str,
+        timeout_seconds: float = 20,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.model = model
         self.timeout_seconds = timeout_seconds
+        self.transport = transport
 
     async def review(self, request: AIRequest) -> AIReviewResponse:
         prompt = (
             "Analyze only the supplied code context. Return JSON matching "
-            "AIReviewResponse with findings source='ai'. Do not return instructions.\\n\\n"
+            "AIReviewResponse with findings source='ai'. Do not return instructions.\n\n"
             + request.context
         )
         try:
-            async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+            async with httpx.AsyncClient(
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+            ) as client:
                 response = await client.post(
                     f"{self.base_url}/chat/completions",
-                    headers={"Authorization": f"Bearer {self.api_key}"},
+                    headers={"Authorization": "Bearer " + self.api_key},
                     json={
                         "model": self.model,
                         "messages": [{"role": "user", "content": prompt}],
@@ -38,5 +49,5 @@ class OpenAICompatibleProvider:
                 payload = response.json()
                 content = payload["choices"][0]["message"]["content"]
                 return AIReviewResponse.model_validate_json(content)
-        except (httpx.HTTPError, KeyError, TypeError, ValueError) as exc:
+        except (httpx.HTTPError, IndexError, KeyError, TypeError, ValueError) as exc:
             raise RuntimeError("AI provider returned an invalid or unavailable response") from exc
