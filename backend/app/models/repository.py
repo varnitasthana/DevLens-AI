@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import TimestampedModel
 
 if TYPE_CHECKING:
+    from app.models.analysis import Analysis
     from app.models.repository_file import RepositoryFile
 
 
@@ -26,6 +27,9 @@ class Repository(TimestampedModel):
         back_populates="repository",
         cascade="all, delete-orphan",
         passive_deletes=True,
+    )
+    analyses: Mapped[list["Analysis"]] = relationship(
+        back_populates="repository", cascade="all, delete-orphan", passive_deletes=True
     )
 
     def __repr__(self) -> str:
