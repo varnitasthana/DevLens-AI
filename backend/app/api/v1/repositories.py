@@ -14,11 +14,12 @@ from app.models.repository import Repository
 from app.schemas.repository import RepositoryCreate, RepositoryResponse, RepositoryUpdate
 from app.schemas.ingestion import IngestionResponse
 from app.schemas.analysis import AnalysisResponse
-from app.services.analysis import StaticAnalysisService
 from app.services.ingestion import IngestionService
 from app.services.repository import RepositoryService
 from app.core.dependencies import get_current_user
 from app.models.user import User
+from app.models.analysis import Analysis
+from app.workers.analysis import analyze_repository_task, mark_analysis_failed
 
 router = APIRouter(prefix="/repositories", tags=["repositories"])
 
@@ -131,7 +132,11 @@ async def analyze_repository(
         raise HTTPException(status_code=400, detail="Only ZIP uploads are supported")
     temporary_path: str | None = None
     try:
-        with tempfile.NamedTemporaryFile(prefix="devlens-analysis-", suffix=".zip", delete=False) as target:
+        upload_dir = Path(settings.analysis_upload_dir)
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            prefix="devlens-analysis-", suffix=".zip", dir=upload_dir, delete=False
+        ) as target:
             temporary_path = target.name
             size = 0
             while chunk := await upload.read(1024 * 1024):
@@ -142,9 +147,16 @@ async def analyze_repository(
         repository = await asyncio.to_thread(service_for_owner, session, repository_id, user.id)
         if repository is None:
             raise HTTPException(status_code=404, detail="Repository not found")
-        analysis, _ = await asyncio.to_thread(
-            StaticAnalysisService(session, settings).analyze_zip, repository, Path(temporary_path)
+        analysis = Analysis(repository_id=repository.id, status="QUEUED")
+        session.add(analysis)
+        session.commit()
+        analyze_repository_task.apply_async(
+            args=[str(analysis.id), str(repository.id), temporary_path],
+            link_error=mark_analysis_failed.si(str(analysis.id)),
         )
+        temporary_path = None
+        if settings.celery_task_always_eager:
+            session.refresh(analysis)
         return AnalysisResponse.model_validate(analysis)
     finally:
         await upload.close()

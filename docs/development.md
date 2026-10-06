@@ -134,3 +134,13 @@ npm run build
 
 Start from the root `.env.example` and create a local `.env`. Secrets belong
 only in local or deployment secret management and must not be committed.
+## Worker development
+
+Start Redis and PostgreSQL, then run the API and worker separately:
+
+```text
+celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
+```
+
+Set `CELERY_TASK_ALWAYS_EAGER=true` for deterministic local tests. The Docker
+Compose configuration includes a worker and a shared analysis-upload volume.

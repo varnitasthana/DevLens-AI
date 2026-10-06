@@ -2,12 +2,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 
-import { createAnalysis, fetchRepository } from "../services/api";
+import { createAnalysis, fetchAnalysis, fetchRepository } from "../services/api";
 
 export function AnalysisPage() {
   const { repositoryId } = useParams();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
+  const [analysisId, setAnalysisId] = useState<string>();
   const repository = useQuery({
     queryKey: ["repository", repositoryId],
     queryFn: () => fetchRepository(repositoryId!),
@@ -15,7 +16,16 @@ export function AnalysisPage() {
   });
   const analysis = useMutation({
     mutationFn: () => createAnalysis(repositoryId!, file!),
-    onSuccess: (result) => navigate(`/analyses/${result.id}/findings`),
+    onSuccess: (result) => setAnalysisId(result.id),
+  });
+  const status = useQuery({
+    queryKey: ["analysis", analysisId],
+    queryFn: () => fetchAnalysis(analysisId!),
+    enabled: Boolean(analysisId),
+    refetchInterval: (query) =>
+      query.state.data?.status === "QUEUED" || query.state.data?.status === "RUNNING"
+        ? 2000
+        : false,
   });
 
   if (repository.isLoading) return <p className="status">Loading repository…</p>;
@@ -31,6 +41,13 @@ export function AnalysisPage() {
         <input type="file" accept=".zip,application/zip" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
       </label>
       {analysis.isError && <p className="status status-error">{analysis.error.message}</p>}
+      {status.data && <p className="status">Status: {status.data.status}</p>}
+      {status.data?.status === "FAILED" && (
+        <p className="status status-error">The analysis worker could not complete this job.</p>
+      )}
+      {status.data?.status === "COMPLETED" && (
+        <button onClick={() => navigate(`/analyses/${status.data!.id}/findings`)}>View findings</button>
+      )}
       <button disabled={!file || analysis.isPending} onClick={() => analysis.mutate()}>
         {analysis.isPending ? "Analyzing…" : "Start analysis"}
       </button>

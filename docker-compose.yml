@@ -31,8 +31,32 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-devlens}:${POSTGRES_PASSWORD:-devlens-dev-password}@db:5432/${POSTGRES_DB:-devlens}
       REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      ANALYSIS_UPLOAD_DIR: /var/lib/devlens/uploads
+    volumes:
+      - analysis_uploads:/var/lib/devlens/uploads
     ports:
       - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+    command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-devlens}:${POSTGRES_PASSWORD:-devlens-dev-password}@db:5432/${POSTGRES_DB:-devlens}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      ANALYSIS_UPLOAD_DIR: /var/lib/devlens/uploads
+    volumes:
+      - analysis_uploads:/var/lib/devlens/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -51,3 +75,4 @@ services:
 
 volumes:
   postgres_data:
+  analysis_uploads:

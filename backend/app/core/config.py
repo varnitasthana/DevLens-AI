@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     redis_url: str | None = None
     rate_limit_window_seconds: int = 60
     rate_limit_requests: int = 30
+    celery_broker_url: str = "redis://localhost:6379/0"
+    celery_result_backend: str = "redis://localhost:6379/0"
+    celery_task_always_eager: bool = False
+    analysis_upload_dir: str = ".devlens/uploads"
+    chat_max_files: int = 8
+    chat_max_context_chars: int = 24_000
 
     @model_validator(mode="after")
     def validate_security_defaults(self) -> "Settings":

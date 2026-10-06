@@ -5,6 +5,7 @@ import time
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
+from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -35,6 +36,14 @@ class StaticAnalysisService:
         analysis = Analysis(repository_id=repository.id, status="QUEUED")
         self.session.add(analysis)
         self.session.commit()
+        return self.analyze_existing(repository, analysis.id, archive_path)
+
+    def analyze_existing(
+        self, repository: Repository, analysis_id: UUID, archive_path: Path
+    ) -> tuple[Analysis, list[Finding]]:
+        analysis = self.session.get(Analysis, analysis_id)
+        if analysis is None or analysis.repository_id != repository.id:
+            raise ValueError("Analysis not found")
         analysis.status = "RUNNING"
         analysis.started_at = datetime.now(timezone.utc)
         self.session.commit()
