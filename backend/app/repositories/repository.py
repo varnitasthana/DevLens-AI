@@ -17,26 +17,28 @@ class RepositoryRepository:
         source_url: str,
         default_branch: str,
         description: str | None,
+        owner_id,
     ) -> Repository:
         repository = Repository(
             name=name,
             source_url=source_url,
             default_branch=default_branch,
             description=description,
+            owner_id=owner_id,
         )
         self.session.add(repository)
         self.session.flush()
         self.session.refresh(repository)
         return repository
 
-    def list(self) -> list[Repository]:
+    def list(self, owner_id) -> list[Repository]:
         result = self.session.scalars(
-            select(Repository).order_by(Repository.created_at.desc())
+            select(Repository).where(Repository.owner_id == owner_id).order_by(Repository.created_at.desc())
         )
         return list(result.all())
 
-    def get(self, repository_id: UUID) -> Repository | None:
-        return self.session.get(Repository, repository_id)
+    def get(self, repository_id: UUID, owner_id) -> Repository | None:
+        return self.session.scalar(select(Repository).where(Repository.id == repository_id, Repository.owner_id == owner_id))
 
     def delete(self, repository: Repository) -> None:
         self.session.delete(repository)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class DashboardResponse(BaseModel):
@@ -27,10 +27,15 @@ class GitHubImportResponse(BaseModel):
     name: str
     source_url: str
     default_branch: str
+    file_count: int
+    status: str
 
 
 class PullRequestReviewRequest(BaseModel):
-    diff: str
+    model_config = ConfigDict(extra="forbid")
+
+    diff: str | None = None
+    github_url: str | None = None
     repository: str | None = None
     pull_request: int | None = None
 

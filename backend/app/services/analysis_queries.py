@@ -12,11 +12,11 @@ class AnalysisQueryService:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get(self, analysis_id: UUID) -> Analysis:
+    def get(self, analysis_id: UUID, owner_id) -> Analysis:
         analysis = self.session.scalar(
             select(Analysis)
             .options(selectinload(Analysis.findings))
-            .where(Analysis.id == analysis_id)
+            .where(Analysis.id == analysis_id, Analysis.repository.has(owner_id=owner_id))
         )
         if analysis is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis not found")
@@ -28,9 +28,9 @@ class AnalysisQueryService:
         severity: str | None = None,
         category: str | None = None,
         source: str | None = None,
-        file: str | None = None,
+        file: str | None = None, owner_id=None,
     ) -> list[Finding]:
-        if self.session.scalar(select(Analysis.id).where(Analysis.id == analysis_id)) is None:
+        if self.session.scalar(select(Analysis.id).join(Analysis.repository).where(Analysis.id == analysis_id, Analysis.repository.has(owner_id=owner_id))) is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis not found")
         query = select(Finding).where(Finding.analysis_id == analysis_id)
         if severity:

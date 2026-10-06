@@ -4,6 +4,8 @@ from app.ai.provider import OpenAICompatibleProvider
 from app.ai.test_generation import AITestGenerationService
 from app.core.config import Settings, get_settings
 from app.schemas.test_generation import GeneratedTestResponse, TestGenerationRequest
+from app.core.dependencies import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/test-generation", tags=["test-generation"])
 
@@ -12,6 +14,7 @@ router = APIRouter(prefix="/test-generation", tags=["test-generation"])
 async def generate_tests(
     request: TestGenerationRequest,
     settings: Settings = Depends(get_settings),
+    user: User = Depends(get_current_user),
 ) -> GeneratedTestResponse:
     if not settings.ai_base_url or not settings.ai_api_key:
         raise HTTPException(

@@ -14,13 +14,14 @@ class RepositoryService:
         self.repository = RepositoryRepository(session)
         self.session = session
 
-    def create(self, data: RepositoryCreate) -> Repository:
+    def create(self, data: RepositoryCreate, owner_id) -> Repository:
         try:
             repository = self.repository.create(
                 name=data.name,
                 source_url=str(data.source_url),
                 default_branch=data.default_branch,
                 description=data.description,
+                owner_id=owner_id,
             )
             self.session.commit()
             return repository
@@ -31,11 +32,11 @@ class RepositoryService:
                 detail="A repository with this source URL already exists",
             ) from exc
 
-    def list(self) -> list[Repository]:
-        return self.repository.list()
+    def list(self, owner_id) -> list[Repository]:
+        return self.repository.list(owner_id)
 
-    def get(self, repository_id: UUID) -> Repository:
-        repository = self.repository.get(repository_id)
+    def get(self, repository_id: UUID, owner_id) -> Repository:
+        repository = self.repository.get(repository_id, owner_id)
         if repository is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -43,13 +44,13 @@ class RepositoryService:
             )
         return repository
 
-    def delete(self, repository_id: UUID) -> None:
-        repository = self.get(repository_id)
+    def delete(self, repository_id: UUID, owner_id) -> None:
+        repository = self.get(repository_id, owner_id)
         self.repository.delete(repository)
         self.session.commit()
 
-    def update(self, repository_id: UUID, data: RepositoryUpdate) -> Repository:
-        repository = self.get(repository_id)
+    def update(self, repository_id: UUID, data: RepositoryUpdate, owner_id) -> Repository:
+        repository = self.get(repository_id, owner_id)
         values = data.model_dump(exclude_unset=True)
         if "source_url" in values:
             values["source_url"] = str(values["source_url"])
