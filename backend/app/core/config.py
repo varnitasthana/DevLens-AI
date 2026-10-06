@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     ai_api_key: str | None = None
     ai_model: str = "devlens-reviewer"
     ai_timeout_seconds: float = 20.0
+    github_token: str | None = None
 
     @field_validator("cors_origins", mode="before")
     @classmethod
