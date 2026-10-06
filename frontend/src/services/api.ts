@@ -8,6 +8,22 @@ import type {
 import type { Analysis, Finding } from "../types/analysis";
 import type { Dashboard } from "../types/dashboard";
 
+const authTokenKey = "devlens_access_token";
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem(authTokenKey);
+}
+
+export function clearAuthToken(): void {
+  localStorage.removeItem(authTokenKey);
+  window.dispatchEvent(new Event("devlens-auth-changed"));
+}
+
+function authHeaders(): HeadersInit {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function fetchHealth(): Promise<HealthResponse> {
   const response = await fetch(`${apiBaseUrl}/api/v1/health`);
   if (!response.ok) {
@@ -18,7 +34,7 @@ export async function fetchHealth(): Promise<HealthResponse> {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
-    headers: { "Content-Type": "application/json", ...options?.headers },
+    headers: { "Content-Type": "application/json", ...authHeaders(), ...options?.headers },
     ...options,
   });
   if (!response.ok) {
@@ -29,6 +45,27 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+
+export async function authenticate(
+  path: "/api/v1/auth/login" | "/api/v1/auth/register",
+  email: string,
+  password: string,
+): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: { message?: string };
+    } | null;
+    throw new Error(body?.error?.message ?? `Authentication failed (${response.status})`);
+  }
+  const result = (await response.json()) as { access_token: string };
+  localStorage.setItem(authTokenKey, result.access_token);
+  window.dispatchEvent(new Event("devlens-auth-changed"));
 }
 
 export const fetchRepositories = () => request<Repository[]>("/api/v1/repositories");
@@ -65,6 +102,7 @@ export async function createAnalysis(repositoryId: string, file: File): Promise<
   form.append("upload", file);
   const response = await fetch(`${apiBaseUrl}/api/v1/repositories/${repositoryId}/analyses`, {
     method: "POST",
+    headers: authHeaders(),
     body: form,
   });
   if (!response.ok) throw new Error(`Analysis request failed (${response.status})`);
