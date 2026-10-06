@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from uuid import UUID
 
-from sqlalchemy import BigInteger, Boolean, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import TimestampedModel
@@ -26,5 +26,6 @@ class RepositoryFile(TimestampedModel):
     language: Mapped[str | None] = mapped_column(String(64), nullable=True)
     is_binary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     repository: Mapped["Repository"] = relationship(back_populates="files")

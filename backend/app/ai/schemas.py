@@ -37,3 +37,20 @@ class GeneratedTestResponse(BaseModel):
     file_name: str
     test_code: str = Field(min_length=1, max_length=80_000)
     scenarios: list[str] = Field(min_length=1)
+
+
+class ChatRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    question: str = Field(min_length=1, max_length=4_000)
+
+
+class ChatCitation(BaseModel):
+    file: str
+    line_start: int = Field(ge=1)
+    line_end: int = Field(ge=1)
+
+
+class ChatResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    answer: str = Field(min_length=1, max_length=20_000)
+    citations: list[ChatCitation] = Field(default_factory=list, max_length=20)

@@ -92,3 +92,14 @@ source code.
 
 Authentication, workers, Redis, and GitHub integrations are not yet
 implemented.
+## Background analysis and repository chat
+
+Analysis uploads are persisted to a shared upload volume and queued through
+Celery with Redis as broker/result backend. Workers update the existing
+analysis lifecycle (`QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`); the frontend
+polls the analysis resource while work is active.
+
+Ingested text files retain bounded source content for repository-aware chat.
+Chat retrieves matching files before sending context to the configured AI
+provider, returns validated file citations, and treats repository content as
+untrusted data.

@@ -48,6 +48,7 @@ class DiscoveredFile:
     size_bytes: int
     language: str
     sha256: str
+    content: str
 
 
 class IngestionService:
@@ -70,6 +71,7 @@ class IngestionService:
                     language=item.language,
                     is_binary=False,
                     sha256=item.sha256,
+                    content=item.content,
                 )
                 for item in discovered
             ]
@@ -150,6 +152,7 @@ class IngestionService:
                     size_bytes=path.stat().st_size,
                     language=language,
                     sha256=digest.hexdigest(),
+                    content=path.read_text(encoding="utf-8", errors="replace"),
                 )
             )
         return sorted(discovered, key=lambda item: item.path)
