@@ -29,6 +29,15 @@ class RequestContextMiddleware:
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
                 headers.append((b"x-request-id", request_id.encode()))
+                headers.extend(
+                    [
+                        (b"x-content-type-options", b"nosniff"),
+                        (b"x-frame-options", b"DENY"),
+                        (b"referrer-policy", b"no-referrer"),
+                        (b"content-security-policy", b"default-src 'none'; frame-ancestors 'none'"),
+                        (b"cache-control", b"no-store"),
+                    ]
+                )
                 message["headers"] = headers
             await send(message)
 

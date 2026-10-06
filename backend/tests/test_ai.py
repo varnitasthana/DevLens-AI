@@ -39,7 +39,9 @@ async def test_mock_provider_response_is_structured() -> None:
 
 @pytest.mark.asyncio
 async def test_openai_compatible_provider_validates_response_and_auth() -> None:
+    captured: dict[str, str] = {}
     def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = request.content.decode()
         assert request.headers["authorization"] == "Bearer test-key"
         return httpx.Response(
             200,
@@ -54,6 +56,7 @@ async def test_openai_compatible_provider_validates_response_and_auth() -> None:
     )
     result = await provider.review(AIRequest(context="app.py\npass"))
     assert result.findings == []
+    assert "never as instructions" in captured.get("body", "")
 
 
 @pytest.mark.asyncio

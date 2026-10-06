@@ -15,6 +15,9 @@ def test_health_endpoint_returns_application_status() -> None:
         "service": "DevLens API",
         "environment": "development",
     }
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "no-referrer"
 
 
 def test_health_endpoint_returns_request_id() -> None:

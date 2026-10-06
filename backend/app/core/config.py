@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pydantic import field_validator
+from pydantic import model_validator
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -19,6 +20,22 @@ class Settings(BaseSettings):
     ai_model: str = "devlens-reviewer"
     ai_timeout_seconds: float = 20.0
     github_token: str | None = None
+    auth_secret_key: str = "devlens-change-this-secret"
+    auth_token_expire_minutes: int = 60
+    redis_url: str | None = None
+    rate_limit_window_seconds: int = 60
+    rate_limit_requests: int = 30
+
+    @model_validator(mode="after")
+    def validate_security_defaults(self) -> "Settings":
+        if self.app_env.lower() not in {"development", "test"}:
+            if self.auth_secret_key == "devlens-change-this-secret":
+                raise ValueError("AUTH_SECRET_KEY must be configured outside development")
+            if self.database_url.endswith("/devlens") and "devlens-dev-password" in self.database_url:
+                raise ValueError("Production database credentials must be configured")
+            if not self.redis_url:
+                raise ValueError("REDIS_URL must be configured outside development")
+        return self
 
     @field_validator("cors_origins", mode="before")
     @classmethod

@@ -18,6 +18,7 @@ from app.models.analysis import Analysis
 from app.models.finding import Finding
 from app.models.repository import Repository
 from app.core.config import Settings
+from app.services.ingestion import IGNORED_DIRECTORIES
 
 
 class StaticAnalysisService:
@@ -42,12 +43,18 @@ class StaticAnalysisService:
         try:
             with zipfile.ZipFile(archive_path) as archive:
                 total_size = 0
+                file_count = 0
                 for member in archive.infolist():
                     if member.is_dir():
                         continue
                     relative = PurePosixPath(member.filename)
                     if relative.is_absolute() or ".." in relative.parts or "\\" in member.filename:
                         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Archive contains an unsafe path")
+                    if any(part in IGNORED_DIRECTORIES for part in relative.parts):
+                        continue
+                    file_count += 1
+                    if file_count > self.settings.max_file_count:
+                        raise HTTPException(status_code=413, detail="The archive contains too many files")
                     if member.file_size > self.settings.max_file_size_bytes:
                         raise HTTPException(status_code=413, detail="File exceeds the configured limit")
                     total_size += member.file_size
@@ -61,6 +68,8 @@ class StaticAnalysisService:
             source_files: dict[str, str] = {}
             for path in workspace.rglob("*"):
                 if not path.is_file():
+                    continue
+                if any(part in IGNORED_DIRECTORIES for part in path.relative_to(workspace).parts):
                     continue
                 language = self._language(path)
                 analyzer = self.analyzers.get(language or "")
