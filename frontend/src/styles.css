@@ -71,6 +71,13 @@ body {
   gap: 1rem;
 }
 
+.filter-bar {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 1.5rem 0;
+}
+
 .finding-heading {
   display: flex;
   justify-content: space-between;

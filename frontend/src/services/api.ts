@@ -6,6 +6,7 @@ import type {
   RepositoryUpdate,
 } from "../types/repository";
 import type { Analysis, Finding } from "../types/analysis";
+import type { Dashboard } from "../types/dashboard";
 
 export async function fetchHealth(): Promise<HealthResponse> {
   const response = await fetch(`${apiBaseUrl}/api/v1/health`);
@@ -31,6 +32,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const fetchRepositories = () => request<Repository[]>("/api/v1/repositories");
+export const fetchDashboard = () => request<Dashboard>("/api/v1/dashboard");
 
 export const fetchRepository = (id: string) =>
   request<Repository>(`/api/v1/repositories/${id}`);

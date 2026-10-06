@@ -93,3 +93,12 @@ def test_analysis_not_found() -> None:
     missing_id = uuid4()
     assert client.get(f"/api/v1/analyses/{missing_id}").status_code == 404
     assert client.get(f"/api/v1/analyses/{missing_id}/findings").status_code == 404
+
+
+def test_dashboard_reflects_completed_sample_analysis() -> None:
+    dashboard = client.get("/api/v1/dashboard")
+    assert dashboard.status_code == 200
+    body = dashboard.json()
+    assert body["repositories"] >= 0
+    assert "findings_by_severity" in body
+    assert "security_findings" in body
