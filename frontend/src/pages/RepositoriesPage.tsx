@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { RepositoryForm } from "../components/RepositoryForm";
 import { RepositoryList } from "../components/RepositoryList";
@@ -68,6 +69,7 @@ export function RepositoriesPage() {
           <dt>Default branch</dt><dd>{selected.default_branch}</dd>
         </dl>
         <div className="form-actions">
+          <Link className="button-link" to={`/repositories/${selected.id}/analysis`}>Analyze repository</Link>
           <button onClick={() => setView("edit")}>Edit repository</button>
           <button className="button-danger" onClick={handleDelete}>Delete repository</button>
         </div>

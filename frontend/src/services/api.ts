@@ -5,6 +5,7 @@ import type {
   RepositoryInput,
   RepositoryUpdate,
 } from "../types/repository";
+import type { Analysis, Finding } from "../types/analysis";
 
 export async function fetchHealth(): Promise<HealthResponse> {
   const response = await fetch(`${apiBaseUrl}/api/v1/health`);
@@ -48,3 +49,22 @@ export const updateRepository = (id: string, data: RepositoryUpdate) =>
 
 export const deleteRepository = (id: string) =>
   request<void>(`/api/v1/repositories/${id}`, { method: "DELETE" });
+
+export const fetchAnalysis = (id: string) =>
+  request<Analysis>(`/api/v1/analyses/${id}`);
+
+export const fetchFindings = (id: string, filters?: Record<string, string>) => {
+  const query = new URLSearchParams(filters).toString();
+  return request<Finding[]>(`/api/v1/analyses/${id}/findings${query ? `?${query}` : ""}`);
+};
+
+export async function createAnalysis(repositoryId: string, file: File): Promise<Analysis> {
+  const form = new FormData();
+  form.append("upload", file);
+  const response = await fetch(`${apiBaseUrl}/api/v1/repositories/${repositoryId}/analyses`, {
+    method: "POST",
+    body: form,
+  });
+  if (!response.ok) throw new Error(`Analysis request failed (${response.status})`);
+  return response.json() as Promise<Analysis>;
+}
