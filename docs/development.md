@@ -32,6 +32,30 @@ npm run typecheck
 npm run build
 ```
 
+The dashboard uses the real aggregate endpoint:
+
+```powershell
+curl.exe http://localhost:8000/api/v1/dashboard
+```
+
+GitHub metadata import uses the server-side `GITHUB_TOKEN` when configured;
+tokens are never returned to the frontend:
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/v1/github/repositories/import `
+  -H "Content-Type: application/json" `
+  -d '{"url":"https://github.com/owner/repository","branch":"main"}'
+```
+
+Pull request review accepts a diff and returns a report without posting
+comments or modifying source code:
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/v1/pull-requests/review `
+  -H "Content-Type: application/json" `
+  -d '{"diff":"+++ b/app.py\n+value = eval(user_input)"}'
+```
+
 Docker configuration:
 
 ```powershell

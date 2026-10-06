@@ -81,6 +81,13 @@ Phase 9 provides the React application shell, dashboard, repository analysis
 upload flow, and findings page. React Query manages API loading and error
 states; all displayed repository and analysis data comes from FastAPI.
 
+Phase 10 adds database-backed dashboard aggregates and server-side finding
+filters. Phase 11 verifies the repository-to-analysis-to-dashboard workflow
+with deterministic sample inputs. Phase 12 adds server-side GitHub metadata
+import using an optional environment token. Phase 13 adds diff-first pull
+request review; it returns a report and never posts comments or modifies
+source code.
+
 ## Remaining deferred work
 
 Authentication, workers, Redis, and GitHub integrations are not yet
