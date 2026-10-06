@@ -1,100 +1,117 @@
 # Architecture
 
-## Phase 1
+## System boundary
 
-DevLens currently has two application services:
+DevLens is a browser application backed by a versioned FastAPI API. PostgreSQL
+stores users, repositories, repository files, analyses, and findings. Redis
+supports rate limiting and Celery job transport. A Celery worker performs
+analysis outside the request process.
 
 ```text
-Browser -> frontend (Vite/React/TypeScript)
-             |
-             v
-         backend (FastAPI) -> PostgreSQL
+Browser
+  |
+  v
+React/TypeScript frontend served by nginx
+  |
+  v
+FastAPI /api/v1
+  |                 \
+  v                  v
+PostgreSQL       Redis
+  ^                  |
+  |                  v
+  +------------ Celery worker
+                       |
+                       v
+                 analysis services
 ```
 
-The frontend calls the backend through `VITE_API_BASE_URL`. The backend reads
-runtime configuration from environment variables using a typed Pydantic
-settings object. PostgreSQL is included in the development compose file as the
-data-store foundation, although Phase 1 does not yet define application
-tables.
+Docker Compose provides the local PostgreSQL, Redis, backend, worker, and
+frontend services. The backend image runs `alembic upgrade head` before
+starting Uvicorn. The frontend nginx configuration provides SPA history
+fallback for direct React route navigation.
 
-The backend exposes versioned health contracts:
+## Backend layers
 
-- `GET /api/v1/health` reports application health.
-- `GET /api/v1/health/ready` performs an asynchronous PostgreSQL `SELECT 1`
-  check and reports `503` with a structured error if the dependency is down.
+- `app/api/v1`: authenticated HTTP routes and request/response contracts.
+- `app/core`: settings, bearer authentication, ownership dependencies,
+  structured errors, request context, security headers, and rate limiting.
+- `app/models`: SQLAlchemy entities and relationships.
+- `app/repositories`: persistence queries.
+- `app/services`: repository, ingestion, analysis, dashboard, AI chat, GitHub,
+  and pull-request workflows.
+- `app/analyzers`: normalized Python and JavaScript/TypeScript static findings.
+- `app/ai`: provider abstraction, context selection, prompts, and validated
+  AI responses.
+- `app/workers`: Celery application and background analysis tasks.
 
-All HTTP errors use the `ErrorResponse` schema and include a request ID. The
-request context middleware accepts or generates `X-Request-ID`, returns it on
-the response, and emits JSON logs.
+Blocking SQLAlchemy sessions and file work are moved to worker threads from
+async route handlers where required. Uploaded source is treated as data and
+is not executed.
 
-## Persistence
+## Persistence and migrations
 
-Phase 3 persists repository metadata in `repositories`. It includes
-a UUID primary key, unique source URL, name and branch metadata, description,
-UTC timestamps, and an index for lookup by name. SQLAlchemy 2.x sessions use
-the synchronous psycopg driver, and API handlers run database operations via
-`asyncio.to_thread` so blocking database calls do not block the event loop.
-Alembic owns the schema migration.
+Alembic migrations create and evolve:
 
-Repository files, analyses, and findings are persisted for the ingestion and
-analysis workflows. Users and repository ownership are persisted and enforced on application
-routes.
+- users and authentication ownership fields;
+- repositories;
+- repository file metadata and bounded source content;
+- analyses and lifecycle fields;
+- normalized analysis findings.
 
-Phase 4 adds safe ZIP ingestion at
-`POST /api/v1/repositories/{id}/ingest`. Archives are streamed to a temporary
-file, checked for size and safe relative paths, extracted into a temporary
-directory, scanned for supported text languages, and removed after metadata is
-persisted. Binary files, unsupported extensions, ignored directories, and
-files exceeding configured limits are not included. Uploaded source code is
-never executed or sent to an LLM.
+The current migration head is `20261006_0006`. Repository and analysis
+queries are scoped to the authenticated owner.
 
-Phase 5 adds deterministic Python and JavaScript/TypeScript analysis through
-`POST /api/v1/repositories/{id}/analyses`. The legacy `/analyze` route remains
-available as a compatibility alias. Analysis runs transition through
-`QUEUED`, `RUNNING`, `COMPLETED`, and `FAILED`, recording timestamps, duration,
-file count, analyzer sources, and normalized findings.
+## API capabilities
 
-Phase 6 adds a provider-neutral AI review abstraction. AI context is filtered
-to supported source files and bounded by per-file and total character limits.
-AI responses are validated with Pydantic and must use `source="ai"`. No AI
-provider is called unless explicitly configured. When configured, the Phase 7
-workflow combines static and AI findings in the same analysis result.
+Implemented backend routes include:
 
-Analysis results are available through:
+- health and readiness;
+- registration and login;
+- repository CRUD, ZIP ingestion, and analysis upload;
+- analysis status and filtered findings;
+- dashboard aggregates;
+- Python AI test generation;
+- repository-aware chat;
+- GitHub repository metadata import;
+- diff or GitHub URL pull-request review.
 
-- `GET /api/v1/analyses/{id}`
-- `GET /api/v1/analyses/{id}/findings`
+Pull-request review returns a report and does not post comments or modify
+source code. GitHub and AI credentials remain server-side.
 
-Finding results support `severity`, `category`, `source`, and `file` filters.
-Analysis uploads are queued to Celery workers when background processing is
-enabled. Deterministic tests can use eager Celery execution.
+## Frontend boundary
 
-Phase 8 adds optional Python unit-test generation at
-`POST /api/v1/test-generation`. The request contains only the selected Python
-source file. The validated response contains test text and scenario
-explanations, and is always marked `AI GENERATED — REVIEW BEFORE EXECUTION`.
-Generated text is never executed or persisted automatically. JavaScript and
-TypeScript generation remain deferred.
+The frontend currently includes routes for authentication, dashboard,
+repository management, analysis upload/status, and findings. It uses React
+Query and a typed API client with bearer-token injection. Loading, error, and
+empty states are represented in the application pages.
 
-Phase 9 provides the React application shell, dashboard, repository analysis
-upload flow, and findings page. React Query manages API loading and error
-states; all displayed repository and analysis data comes from FastAPI.
+Chat, GitHub import, and pull-request review are implemented as backend APIs
+but are not currently surfaced as frontend pages.
 
-Phase 10 adds database-backed dashboard aggregates and server-side finding
-filters. Phase 11 verifies the repository-to-analysis-to-dashboard workflow
-with deterministic sample inputs. Phase 12 adds server-side GitHub metadata
-import using an optional environment token. Phase 13 adds diff-first pull
-request review; it returns a report and never posts comments or modifies
-source code.
+## Analysis lifecycle
 
-## Background analysis and repository chat
+```text
+Upload
+  -> QUEUED
+  -> RUNNING
+  -> COMPLETED or FAILED
+```
 
-Analysis uploads are persisted to a shared upload volume and queued through
-Celery with Redis as broker/result backend. Workers update the existing
-analysis lifecycle (`QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`); the frontend
-polls the analysis resource while work is active.
+The worker safely extracts the archive, discovers supported text files,
+persists file metadata, runs deterministic analyzers, optionally calls the
+configured AI provider with bounded context, and persists normalized findings.
+The frontend polls the analysis resource while it is active.
 
-Ingested text files retain bounded source content for repository-aware chat.
-Chat retrieves matching files before sending context to the configured AI
-provider, returns validated file citations, and treats repository content as
-untrusted data.
+## Trust boundaries
+
+- Authentication tokens are accepted only through the bearer authorization
+  header.
+- Repository ownership is enforced before repository, analysis, finding, and
+  chat access.
+- Archive paths and resource limits are validated before extraction.
+- AI responses are parsed into application schemas before persistence.
+- Repository content is explicitly untrusted context, not executable
+  instructions.
+- Generated test output is returned as review-only text and is never executed
+  automatically.

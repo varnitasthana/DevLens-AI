@@ -32,10 +32,12 @@ npm run typecheck
 npm run build
 ```
 
-The dashboard uses the real aggregate endpoint:
+After obtaining a bearer token from the auth API, the dashboard uses the real
+aggregate endpoint:
 
 ```powershell
-curl.exe http://localhost:8000/api/v1/dashboard
+curl.exe http://localhost:8000/api/v1/dashboard `
+  -H "Authorization: Bearer $env:DEVLENS_ACCESS_TOKEN"
 ```
 
 GitHub metadata import uses the server-side `GITHUB_TOKEN` when configured;
@@ -112,6 +114,7 @@ Python test generation is available only when the AI provider is configured:
 ```powershell
 curl.exe -X POST http://localhost:8000/api/v1/test-generation `
   -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $env:DEVLENS_ACCESS_TOKEN" `
   -d '{"file_name":"calculator.py","source":"def add(a, b): return a + b"}'
 ```
 
