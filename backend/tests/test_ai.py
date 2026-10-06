@@ -6,7 +6,13 @@ from pydantic import ValidationError
 
 from app.ai.context import build_context, render_context
 from app.ai.provider import OpenAICompatibleProvider
-from app.ai.schemas import AIRequest, AIReviewResponse
+from app.ai.schemas import (
+    AIRequest,
+    AIReviewResponse,
+    GeneratedTestResponse,
+    TestGenerationRequest as GenerationRequest,
+)
+from app.ai.test_generation import AITestGenerationService
 
 
 def test_context_filters_files_and_caps_size() -> None:
@@ -75,6 +81,28 @@ async def test_openai_compatible_provider_handles_timeout() -> None:
     )
     with pytest.raises(RuntimeError, match="invalid or unavailable"):
         await provider.review(AIRequest(context="app.py\npass"))
+
+
+@pytest.mark.asyncio
+async def test_mock_test_generation_is_marked_and_not_executed() -> None:
+    class MockProvider:
+        async def generate_tests(self, request: GenerationRequest) -> GeneratedTestResponse:
+            return GeneratedTestResponse(
+                file_name=request.file_name,
+                test_code="def test_add():\n    assert add(1, 2) == 3",
+                scenarios=["happy path"],
+            )
+
+    result = await AITestGenerationService(MockProvider()).generate(
+        GenerationRequest(file_name="math.py", source="def add(a, b): return a + b")
+    )
+    assert result.review_banner == "AI GENERATED — REVIEW BEFORE EXECUTION"
+    assert "def test_add" in result.test_code
+
+
+def test_test_generation_request_rejects_non_python_files() -> None:
+    with pytest.raises(ValidationError):
+        GenerationRequest(file_name="component.ts", source="export const value = 1")
 
 
 @pytest.mark.asyncio
