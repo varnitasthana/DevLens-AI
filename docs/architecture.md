@@ -36,8 +36,9 @@ the synchronous psycopg driver, and API handlers run database operations via
 `asyncio.to_thread` so blocking database calls do not block the event loop.
 Alembic owns the schema migration.
 
-Repository files, analyses, findings, and users are intentionally deferred
-until their workflows and ownership rules are defined.
+Repository files, analyses, and findings are persisted for the ingestion and
+analysis workflows. Users are still deferred until authentication and
+ownership rules are defined.
 
 Phase 4 adds safe ZIP ingestion at
 `POST /api/v1/repositories/{id}/ingest`. Archives are streamed to a temporary
@@ -48,15 +49,28 @@ files exceeding configured limits are not included. Uploaded source code is
 never executed or sent to an LLM.
 
 Phase 5 adds deterministic Python and JavaScript/TypeScript analysis through
-`POST /api/v1/repositories/{id}/analyze`. It analyzes a temporary workspace
-and persists normalized findings with `source="static"`.
+`POST /api/v1/repositories/{id}/analyses`. The legacy `/analyze` route remains
+available as a compatibility alias. Analysis runs transition through
+`QUEUED`, `RUNNING`, `COMPLETED`, and `FAILED`, recording timestamps, duration,
+file count, analyzer sources, and normalized findings.
 
 Phase 6 adds a provider-neutral AI review abstraction. AI context is filtered
 to supported source files and bounded by per-file and total character limits.
 AI responses are validated with Pydantic and must use `source="ai"`. No AI
-provider is called unless explicitly configured.
+provider is called unless explicitly configured. When configured, the Phase 7
+workflow combines static and AI findings in the same analysis result.
+
+Analysis results are available through:
+
+- `GET /api/v1/analyses/{id}`
+- `GET /api/v1/analyses/{id}/findings`
+
+Finding results support `severity`, `category`, `source`, and `file` filters.
+The current workflow runs synchronously in a thread so database and file I/O
+do not block the event loop; a queue worker is deferred until analysis duration
+requires it.
 
 ## Remaining deferred work
 
-Repository analyzers, AI providers, authentication, workers, Redis, and GitHub
-integrations are not part of Phase 3.
+Authentication, workers, Redis, and GitHub integrations are not yet
+implemented.
