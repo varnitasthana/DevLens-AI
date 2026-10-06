@@ -1,3 +1,5 @@
+from os import getenv
+
 import httpx
 import pytest
 from pydantic import ValidationError
@@ -73,3 +75,31 @@ async def test_openai_compatible_provider_handles_timeout() -> None:
     )
     with pytest.raises(RuntimeError, match="invalid or unavailable"):
         await provider.review(AIRequest(context="app.py\npass"))
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_configured_ai_provider_integration() -> None:
+    base_url = getenv("AI_BASE_URL")
+    api_key = getenv("AI_API_KEY")
+    model = getenv("AI_MODEL", "devlens-reviewer")
+    if not base_url or not api_key:
+        pytest.skip("AI_BASE_URL and AI_API_KEY are required")
+
+    provider = OpenAICompatibleProvider(
+        base_url=base_url,
+        api_key=api_key,
+        model=model,
+    )
+    response = await provider.review(
+        AIRequest(
+            context=(
+                "FILE: example.py\n"
+                "```python\n"
+                "def add(left: int, right: int) -> int:\n"
+                "    return left + right\n"
+                "```"
+            )
+        )
+    )
+    assert isinstance(response, AIReviewResponse)
