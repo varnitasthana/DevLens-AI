@@ -70,6 +70,17 @@ The current workflow runs synchronously in a thread so database and file I/O
 do not block the event loop; a queue worker is deferred until analysis duration
 requires it.
 
+Phase 8 adds optional Python unit-test generation at
+`POST /api/v1/test-generation`. The request contains only the selected Python
+source file. The validated response contains test text and scenario
+explanations, and is always marked `AI GENERATED — REVIEW BEFORE EXECUTION`.
+Generated text is never executed or persisted automatically. JavaScript and
+TypeScript generation remain deferred.
+
+Phase 9 provides the React application shell, dashboard, repository analysis
+upload flow, and findings page. React Query manages API loading and error
+states; all displayed repository and analysis data comes from FastAPI.
+
 ## Remaining deferred work
 
 Authentication, workers, Redis, and GitHub integrations are not yet

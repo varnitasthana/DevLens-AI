@@ -83,6 +83,29 @@ AI provider settings are optional and are read from `AI_BASE_URL`,
 `AI_API_KEY`, `AI_MODEL`, and `AI_TIMEOUT_SECONDS`. Normal tests use mocked
 providers and do not require credentials.
 
+Python test generation is available only when the AI provider is configured:
+
+```powershell
+curl.exe -X POST http://localhost:8000/api/v1/test-generation `
+  -H "Content-Type: application/json" `
+  -d '{"file_name":"calculator.py","source":"def add(a, b): return a + b"}'
+```
+
+Generated output is returned as text with the mandatory
+`AI GENERATED — REVIEW BEFORE EXECUTION` banner. DevLens never executes
+generated tests automatically.
+
+The frontend provides dashboard, repository, analysis upload, and findings
+routes. Run its checks with:
+
+```powershell
+cd frontend
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
+
 ## Environment
 
 Start from the root `.env.example` and create a local `.env`. Secrets belong
