@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.health import router as health_router
+from app.api.v1.analyses import router as analyses_router
 from app.api.v1.repositories import router as repositories_router
 from app.core.config import get_settings
 from app.core.errors import (
@@ -31,5 +32,6 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(repositories_router, prefix="/api/v1")
+app.include_router(analyses_router, prefix="/api/v1")
 
 logger = logging.getLogger(__name__)

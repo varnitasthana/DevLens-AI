@@ -111,7 +111,7 @@ async def ingest_repository(
             os.unlink(temporary_path)
 
 
-@router.post("/{repository_id}/analyze", response_model=AnalysisResponse)
+@router.post("/{repository_id}/analyses", response_model=AnalysisResponse)
 async def analyze_repository(
     repository_id: UUID,
     upload: UploadFile = File(...),
@@ -141,3 +141,12 @@ async def analyze_repository(
         await upload.close()
         if temporary_path:
             os.unlink(temporary_path)
+
+
+router.add_api_route(
+    "/{repository_id}/analyze",
+    analyze_repository,
+    methods=["POST"],
+    response_model=AnalysisResponse,
+    include_in_schema=False,
+)
