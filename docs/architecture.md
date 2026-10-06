@@ -29,7 +29,7 @@ the response, and emits JSON logs.
 
 ## Persistence
 
-Phase 3 currently persists repository metadata in `repositories`. It includes
+Phase 3 persists repository metadata in `repositories`. It includes
 a UUID primary key, unique source URL, name and branch metadata, description,
 UTC timestamps, and an index for lookup by name. SQLAlchemy 2.x sessions use
 the synchronous psycopg driver, and API handlers run database operations via
@@ -37,8 +37,8 @@ the synchronous psycopg driver, and API handlers run database operations via
 Alembic owns the schema migration.
 
 Repository files, analyses, and findings are persisted for the ingestion and
-analysis workflows. Users are still deferred until authentication and
-ownership rules are defined.
+analysis workflows. Users and repository ownership are persisted and enforced on application
+routes.
 
 Phase 4 adds safe ZIP ingestion at
 `POST /api/v1/repositories/{id}/ingest`. Archives are streamed to a temporary
@@ -66,9 +66,8 @@ Analysis results are available through:
 - `GET /api/v1/analyses/{id}/findings`
 
 Finding results support `severity`, `category`, `source`, and `file` filters.
-The current workflow runs synchronously in a thread so database and file I/O
-do not block the event loop; a queue worker is deferred until analysis duration
-requires it.
+Analysis uploads are queued to Celery workers when background processing is
+enabled. Deterministic tests can use eager Celery execution.
 
 Phase 8 adds optional Python unit-test generation at
 `POST /api/v1/test-generation`. The request contains only the selected Python
@@ -88,10 +87,6 @@ import using an optional environment token. Phase 13 adds diff-first pull
 request review; it returns a report and never posts comments or modifies
 source code.
 
-## Remaining deferred work
-
-Authentication, workers, Redis, and GitHub integrations are not yet
-implemented.
 ## Background analysis and repository chat
 
 Analysis uploads are persisted to a shared upload volume and queued through

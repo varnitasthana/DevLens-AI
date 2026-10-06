@@ -1,8 +1,8 @@
 # DevLens
 
-DevLens is an AI-powered developer productivity platform. Phase 1 establishes
-the project foundation and a health-check vertical slice; product analysis
-features are intentionally not implemented yet.
+DevLens is an AI-powered developer productivity platform for repository
+analysis, findings review, background analysis jobs, and repository-aware AI
+chat.
 
 ## Quick start
 
@@ -17,7 +17,8 @@ uvicorn app.main:app --reload
 ```
 
 The API is available at `http://localhost:8000`, with health at
-`http://localhost:8000/api/v1/health`.
+`http://localhost:8000/api/v1/health`. Authenticated application endpoints
+require a bearer token obtained from the auth API.
 
 ### Frontend
 
@@ -37,7 +38,8 @@ Copy `.env.example` to `.env`, then run:
 docker compose up --build
 ```
 
-This starts the backend, frontend, and PostgreSQL development services.
+This starts the backend, frontend, PostgreSQL, Redis, and Celery worker
+development services.
 
 ## Project layout
 
@@ -49,7 +51,9 @@ This starts the backend, frontend, and PostgreSQL development services.
 
 ## Current scope
 
-Phase 1 provides configuration, service containers, a health endpoint, and
-basic frontend/backend validation. Repository analysis, authentication,
-background jobs, Redis, and AI integrations are planned for later phases.
-
+The application supports authenticated repository management, safe ZIP
+ingestion, static and optional AI analysis, persisted findings, Celery-backed
+analysis jobs, dashboard data, GitHub metadata and diff review workflows, and
+bounded repository-aware AI chat. See [docs/architecture.md](docs/architecture.md)
+and [docs/security.md](docs/security.md) for implemented boundaries and
+remaining limitations.
