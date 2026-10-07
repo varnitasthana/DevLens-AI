@@ -5,6 +5,23 @@ It combines safe repository ingestion, deterministic static analysis, optional
 AI review, persisted findings, background analysis jobs, and repository-aware
 chat behind authenticated APIs.
 
+> **Deployment status:** Deployment prepared for a public hosting environment.
+> No public URL is claimed yet because external hosting credentials and account
+> access have not been provided.
+
+## Contents
+
+- [What it solves](#what-it-solves)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Technology stack](#technology-stack)
+- [Local setup](#local-setup)
+- [Core workflow](#core-workflow)
+- [Security](#security)
+- [Verification](#verification)
+- [Deployment](#deployment)
+- [Limitations](#limitations)
+
 ## What it solves
 
 Repository review often requires manually combining file discovery, static
@@ -190,6 +207,21 @@ docker compose config --quiet
 The latest local verification recorded 79 backend tests passed with 6 skipped,
 4 frontend tests passed, and successful Ruff, mypy, ESLint, TypeScript, Vite
 build, and Compose configuration checks.
+
+## Deployment
+
+The repository is containerized for deployment as five cooperating services:
+frontend/nginx, FastAPI, PostgreSQL, Redis, and a Celery worker. The backend
+image applies Alembic migrations before starting. A production deployment must
+provide managed PostgreSQL and Redis or equivalent private services, configure
+the environment variables from [.env.example](.env.example) through the
+platform's secret manager, restrict `CORS_ORIGINS` to the deployed frontend
+origin, and terminate HTTPS at the hosting platform or a trusted reverse proxy.
+
+The current repository includes a verified local Docker Compose deployment, but
+does not include a provider-specific live deployment configuration or a public
+URL. See [docs/deployment.md](docs/deployment.md) for the deployment checklist
+and [docs/demo.md](docs/demo.md) for the recruiter walkthrough.
 
 ## Limitations
 
