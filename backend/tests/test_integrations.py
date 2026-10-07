@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 from app.core.config import Settings
 from app.main import app
 from app.models.repository import Repository
+from app.models.user import User
 from app.schemas.dashboard import GitHubImportRequest
 from app.services.github import GitHubClient, GitHubImportService, HttpGitHubClient
 from app.services.pull_request_review import PullRequestReviewService
@@ -708,27 +709,45 @@ class TestHttpGitHubClientPullRequest:
             client.pull_request("owner", "repo", 42)
 
 
-@pytest.mark.skip(reason="Superseded by the authenticated diff-review contract")
 class TestPullRequestReviewEndpoint:
+    def _override_auth(self) -> MagicMock:
+        return MagicMock(spec=User)
+
+    def _clear_overrides(self) -> None:
+        app.dependency_overrides.clear()
+
     def test_endpoint_accepts_diff_only(self) -> None:
-        client = TestClient(app)
-        response = client.post(
-            "/api/v1/pull-requests/review",
-            json={"diff": "diff --git a/app.py b/app.py\n+++ b/app.py\n+value = eval(user_input)\n"},
-        )
-        assert response.status_code == 200
-        body = response.json()
-        assert len(body["issues"]) == 1
-        assert body["issues"][0]["severity"] == "high"
-        assert body["issues"][0]["source"] == "static"
+        from app.core.dependencies import get_current_user
+
+        app.dependency_overrides[get_current_user] = self._override_auth
+        try:
+            client = TestClient(app)
+            response = client.post(
+                "/api/v1/pull-requests/review",
+                json={"diff": "diff --git a/app.py b/app.py\n+++ b/app.py\n+value = eval(user_input)\n"},
+            )
+            assert response.status_code == 200
+            body = response.json()
+            assert len(body["issues"]) == 1
+            assert body["issues"][0]["severity"] == "high"
+            assert body["issues"][0]["source"] == "static"
+        finally:
+            self._clear_overrides()
 
     def test_endpoint_requires_diff_or_github_url(self) -> None:
-        client = TestClient(app)
-        response = client.post("/api/v1/pull-requests/review", json={})
-        assert response.status_code == 422
+        from app.core.dependencies import get_current_user
+
+        app.dependency_overrides[get_current_user] = self._override_auth
+        try:
+            client = TestClient(app)
+            response = client.post("/api/v1/pull-requests/review", json={})
+            assert response.status_code == 422
+        finally:
+            self._clear_overrides()
 
     def test_endpoint_github_url_uses_client(self) -> None:
         from app.api.v1.pull_requests import get_pull_request_review_service
+        from app.core.dependencies import get_current_user
 
         diff = (
             "diff --git a/app.py b/app.py\n"
@@ -740,6 +759,7 @@ class TestPullRequestReviewEndpoint:
         def override_service():
             yield PullRequestReviewService(FakeGitHubClient(diff=diff), Settings())
 
+        app.dependency_overrides[get_current_user] = self._override_auth
         app.dependency_overrides[get_pull_request_review_service] = override_service
         try:
             client = TestClient(app)
@@ -752,14 +772,16 @@ class TestPullRequestReviewEndpoint:
             assert len(body["issues"]) == 1
             assert body["issues"][0]["source"] == "static"
         finally:
-            app.dependency_overrides.clear()
+            self._clear_overrides()
 
     def test_endpoint_rejects_non_github_url(self) -> None:
         from app.api.v1.pull_requests import get_pull_request_review_service
+        from app.core.dependencies import get_current_user
 
         def override_service():
             yield PullRequestReviewService(FakeGitHubClient(), Settings())
 
+        app.dependency_overrides[get_current_user] = self._override_auth
         app.dependency_overrides[get_pull_request_review_service] = override_service
         try:
             client = TestClient(app)
@@ -769,10 +791,11 @@ class TestPullRequestReviewEndpoint:
             )
             assert response.status_code == 422
         finally:
-            app.dependency_overrides.clear()
+            self._clear_overrides()
 
     def test_endpoint_github_url_takes_precedence_over_diff(self) -> None:
         from app.api.v1.pull_requests import get_pull_request_review_service
+        from app.core.dependencies import get_current_user
 
         diff = (
             "diff --git a/app.py b/app.py\n"
@@ -784,6 +807,7 @@ class TestPullRequestReviewEndpoint:
         def override_service():
             yield PullRequestReviewService(FakeGitHubClient(diff=diff), Settings())
 
+        app.dependency_overrides[get_current_user] = self._override_auth
         app.dependency_overrides[get_pull_request_review_service] = override_service
         try:
             client = TestClient(app)
@@ -796,4 +820,4 @@ class TestPullRequestReviewEndpoint:
             assert len(body["issues"]) == 1
             assert body["issues"][0]["source"] == "static"
         finally:
-            app.dependency_overrides.clear()
+            self._clear_overrides()
