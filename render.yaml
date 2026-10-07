@@ -7,6 +7,7 @@ services:
   - type: web
     name: devlens-api
     runtime: docker
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /api/v1/health
@@ -54,6 +55,7 @@ services:
   - type: web
     name: devlens-frontend
     runtime: docker
+    plan: free
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     healthCheckPath: /
