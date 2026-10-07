@@ -35,23 +35,23 @@ services:
       - key: CORS_ORIGINS
         value: https://devlens-frontend-5bh2.onrender.com
       - key: GITHUB_TOKEN
-        value: ${GITHUB_TOKEN}
+        sync: false
       - key: AI_BASE_URL
-        value: ${AI_BASE_URL}
+        sync: false
       - key: AI_API_KEY
-        value: ${AI_API_KEY}
+        sync: false
       - key: AI_MODEL
-        value: ${AI_MODEL}
+        sync: false
       - key: S3_ENDPOINT_URL
-        value: ${S3_ENDPOINT_URL}
+        sync: false
       - key: S3_BUCKET_NAME
-        value: ${S3_BUCKET_NAME}
+        sync: false
       - key: S3_ACCESS_KEY_ID
-        value: ${S3_ACCESS_KEY_ID}
+        sync: false
       - key: S3_SECRET_ACCESS_KEY
-        value: ${S3_SECRET_ACCESS_KEY}
+        sync: false
       - key: S3_REGION
-        value: ${S3_REGION}
+        sync: false
     healthCheck:
       path: /api/v1/health/ready
       initialSeconds: 30
@@ -94,25 +94,25 @@ services:
         fromService:
           name: devlens-backend
           type: web
-          property: AUTH_SECRET_KEY
+          envVarKey: AUTH_SECRET_KEY
       - key: AI_BASE_URL
-        value: ${AI_BASE_URL}
+        sync: false
       - key: AI_API_KEY
-        value: ${AI_API_KEY}
+        sync: false
       - key: AI_MODEL
-        value: ${AI_MODEL}
+        sync: false
       - key: GITHUB_TOKEN
-        value: ${GITHUB_TOKEN}
+        sync: false
       - key: S3_ENDPOINT_URL
-        value: ${S3_ENDPOINT_URL}
+        sync: false
       - key: S3_BUCKET_NAME
-        value: ${S3_BUCKET_NAME}
+        sync: false
       - key: S3_ACCESS_KEY_ID
-        value: ${S3_ACCESS_KEY_ID}
+        sync: false
       - key: S3_SECRET_ACCESS_KEY
-        value: ${S3_SECRET_ACCESS_KEY}
+        sync: false
       - key: S3_REGION
-        value: ${S3_REGION}
+        sync: false
     autoDeploy: true
 
   - type: web
@@ -150,7 +150,7 @@ keyvalue:
     region: oregon
     plan: free
 
-# External S3-compatible object storage credentials (set as Render secrets)
+# External S3-compatible object storage credentials (set as Render secrets via Dashboard)
 # S3_ENDPOINT_URL
 # S3_BUCKET_NAME
 # S3_ACCESS_KEY_ID
