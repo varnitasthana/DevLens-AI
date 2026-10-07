@@ -42,7 +42,7 @@ class Settings(BaseSettings):
         if self.app_env.lower() not in {"development", "test"}:
             if self.auth_secret_key == "devlens-change-this-secret":
                 raise ValueError("AUTH_SECRET_KEY must be configured outside development")
-            if self.database_url.endswith("/devlens") and "devlens-dev-password" in self.database_url:
+            if "devlens-dev-password" in self.database_url:
                 raise ValueError("Production database credentials must be configured")
             if not self.redis_url:
                 raise ValueError("REDIS_URL must be configured outside development")
