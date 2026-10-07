@@ -136,18 +136,6 @@ services:
       periodSeconds: 10
     autoDeploy: true
 
-databases:
-  - name: devlens-db
-    region: oregon
-    plan: free
-    databaseName: devlens
-    user: devlens
-
-keyvalue:
-  - name: devlens-redis
-    region: oregon
-    plan: free
-
 # External S3-compatible object storage credentials (set as Render secrets via Dashboard)
 # S3_ENDPOINT_URL
 # S3_BUCKET_NAME
