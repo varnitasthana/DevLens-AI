@@ -33,7 +33,7 @@ services:
       - key: AUTH_SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://devlens-frontend-5bh2.onrender.com
+        value: https://devlens-frontend-nlwg.onrender.com
       - key: GITHUB_TOKEN
         sync: false
       - key: AI_BASE_URL
