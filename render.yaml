@@ -3,6 +3,7 @@ services:
     name: devlens-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []
 
   - type: web
     name: devlens-api
