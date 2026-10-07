@@ -22,7 +22,7 @@ class StorageBackend(Protocol):
 
 class S3StorageBackend(StorageBackend):
     def __init__(self, settings: Settings) -> None:
-        import boto3  # type: ignore[import-not-found]
+        import boto3  # type: ignore
 
         self._client = boto3.client(
             "s3",
