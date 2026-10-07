@@ -32,6 +32,12 @@ async def test_mock_provider_response_is_structured() -> None:
         async def review(self, request):
             return AIReviewResponse(findings=[])
 
+        async def generate_tests(self, request):
+            raise NotImplementedError()
+
+        async def chat(self, question: str, context: str):
+            raise NotImplementedError()
+
     from app.ai.service import AIReviewService
     result = await AIReviewService(MockProvider()).review_files({"app.py": "pass"})
     assert result.findings == []
@@ -89,12 +95,18 @@ async def test_openai_compatible_provider_handles_timeout() -> None:
 @pytest.mark.asyncio
 async def test_mock_test_generation_is_marked_and_not_executed() -> None:
     class MockProvider:
+        async def review(self, request):
+            raise NotImplementedError()
+
         async def generate_tests(self, request: GenerationRequest) -> GeneratedTestResponse:
             return GeneratedTestResponse(
                 file_name=request.file_name,
                 test_code="def test_add():\n    assert add(1, 2) == 3",
                 scenarios=["happy path"],
             )
+
+        async def chat(self, question: str, context: str):
+            raise NotImplementedError()
 
     result = await AITestGenerationService(MockProvider()).generate(
         GenerationRequest(file_name="math.py", source="def add(a, b): return a + b")

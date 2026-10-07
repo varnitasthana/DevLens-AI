@@ -1,5 +1,6 @@
 import zipfile
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
@@ -17,7 +18,7 @@ def test_scan_discovers_languages_and_ignores_binary_and_directories(tmp_path: P
         archive.writestr("image.png", b"\x89PNG\x00binary")
         archive.writestr("notes.xyz", b"unsupported")
 
-    service = IngestionService(None, Settings())
+    service = IngestionService(MagicMock(), Settings())
     discovered = service._extract_and_scan(archive_path, tmp_path / "out")
 
     assert [(item.path, item.language) for item in discovered] == [
@@ -31,7 +32,7 @@ def test_empty_archive_returns_no_files(tmp_path: Path) -> None:
     with zipfile.ZipFile(archive_path, "w"):
         pass
 
-    discovered = IngestionService(None, Settings())._extract_and_scan(
+    discovered = IngestionService(MagicMock(), Settings())._extract_and_scan(
         archive_path, tmp_path / "out"
     )
 
@@ -44,7 +45,7 @@ def test_path_traversal_is_rejected(tmp_path: Path) -> None:
         archive.writestr("../outside.py", b"unsafe")
 
     with pytest.raises(HTTPException, match="unsafe path"):
-        IngestionService(None, Settings())._extract_and_scan(
+        IngestionService(MagicMock(), Settings())._extract_and_scan(
             archive_path, tmp_path / "out"
         )
 
@@ -54,7 +55,7 @@ def test_nested_directories_are_supported(tmp_path: Path) -> None:
     with zipfile.ZipFile(archive_path, "w") as archive:
         archive.writestr("one/two/three/app.ts", b"const ok = true")
 
-    discovered = IngestionService(None, Settings())._extract_and_scan(
+    discovered = IngestionService(MagicMock(), Settings())._extract_and_scan(
         archive_path, tmp_path / "out"
     )
 
@@ -68,6 +69,6 @@ def test_oversized_file_is_rejected(tmp_path: Path) -> None:
 
     settings = Settings(max_file_size_bytes=10)
     with pytest.raises(HTTPException, match="exceeds"):
-        IngestionService(None, settings)._extract_and_scan(
+        IngestionService(MagicMock(), settings)._extract_and_scan(
             archive_path, tmp_path / "out"
         )
