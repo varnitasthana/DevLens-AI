@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: devlens-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        fromDatabase:
+          name: devlens-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
+      - key: AUTH_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: CELERY_TASK_ALWAYS_EAGER
+        value: "true"
+      - key: ANALYSIS_UPLOAD_DIR
+        value: /tmp/devlens/uploads
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: devlens-reviewer
+      - key: GITHUB_TOKEN
+        sync: false
+
+  - type: web
+    name: devlens-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    healthCheckPath: /
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+
+databases:
+  - name: devlens-db
+    plan: free
+
+  - name: devlens-redis
+    type: keyvalue
+    plan: free
+    maxmemoryPolicy: noeviction

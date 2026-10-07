@@ -7,10 +7,44 @@ deployment has not been performed because no external hosting account,
 deployment credentials, domain, or managed-service credentials are available
 in this repository context.
 
-This document is therefore a deployment-ready runbook, not a claim that the
-application is currently hosted online.
+The repository now includes [render.yaml](../render.yaml), a Render Blueprint
+for the fastest safe demo path. It is deployment configuration, not a claim
+that the application is currently hosted online.
 
-## Recommended service topology
+## Render launch profile
+
+The initial Render profile uses:
+
+- Render PostgreSQL.
+- Render Key Value for Redis-compatible rate limiting and Celery transport.
+- A FastAPI web service.
+- A React/nginx web service.
+- `CELERY_TASK_ALWAYS_EAGER=true`.
+
+Eager mode executes the existing Celery analysis task in the API process. This
+avoids the separate-worker/shared-filesystem problem for a small demonstration
+and keeps the current analysis behavior. It is intentionally not the scalable
+background-processing profile: long analyses occupy a web request, and
+`/tmp/devlens/uploads` is ephemeral. Keep uploads small and use this profile
+only for a portfolio demo.
+
+Render account setup is still required:
+
+1. Create or sign in to a Render account.
+2. Connect the `varnitasthana/DevLens-AI` GitHub repository.
+3. Create a Blueprint from `render.yaml`.
+4. Set `CORS_ORIGINS` to the final frontend HTTPS URL.
+5. After the backend service receives its public URL, set
+   `VITE_API_BASE_URL` on the frontend service to that backend URL and deploy
+   the frontend again.
+6. Set `RENDER_DEPLOY_HOOK_URL` as a GitHub Actions repository secret if
+   automatic deployment from `main` is desired.
+
+Do not place any database password, Redis credential, AI key, GitHub token, or
+authentication secret in GitHub. Render-managed values and generated secrets
+must remain in Render's environment/secrets interface.
+
+## Production topology
 
 Deploy the existing architecture as five services:
 
@@ -33,10 +67,9 @@ The hosting provider must support:
 - HTTPS and a stable frontend hostname.
 - Persistent database storage and health checks.
 
-No provider is prescribed here. Render, Railway, Fly.io, AWS, Azure, or
-another provider may be used after confirming that it supports the complete
-topology. Do not deploy only the frontend and describe the entire system as
-live.
+The `render.yaml` launch profile intentionally omits the separate Celery
+worker while eager mode is enabled. Do not describe that profile as
+asynchronous background processing.
 
 ## Required services
 
@@ -104,6 +137,8 @@ celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
 The worker must receive the same database, Redis, and upload-directory
 configuration as the backend. Use a shared durable location for
 `ANALYSIS_UPLOAD_DIR` when the platform does not guarantee a shared filesystem.
+
+The worker is not part of the initial eager-mode Render profile.
 
 ### Frontend
 
@@ -212,3 +247,24 @@ The local Compose deployment is verified. A live provider deployment, public
 domain, HTTPS certificate, managed database, managed Redis instance, and
 external credentialed integrations remain unverified until an owner supplies
 hosting access.
+
+## Upgrade path: Render Object Storage
+
+After the demo is live, move analysis archives from the web container's
+ephemeral filesystem to Render Object Storage or another S3-compatible object
+store. The production upgrade should:
+
+1. Upload the archive to a private object-storage key.
+2. Pass an opaque object key, not a local path, to the task.
+3. Let the worker download the object to a temporary private file.
+4. Run the existing safe ingestion and analysis flow.
+5. Delete the temporary file and object after completion or failure.
+6. Re-enable `CELERY_TASK_ALWAYS_EAGER=false`.
+7. Add a separate Render background worker using the existing Celery command.
+8. Verify `QUEUED -> RUNNING -> COMPLETED` with the worker before exposing it
+   as the default production profile.
+
+Object Storage is the correct long-term design for independent web and worker
+services. It is deliberately not enabled by `render.yaml` yet because the
+current code has no object-storage client or bucket lifecycle implementation;
+claiming that it was wired would be misleading.
