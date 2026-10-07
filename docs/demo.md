@@ -2,16 +2,18 @@
 
 ## Availability
 
-There is currently no claimed public demo URL. The workflow below is verified
-against the local Docker Compose stack and can be used immediately after a
-future deployment has passed the deployment checklist.
+The application is live and publicly accessible:
+
+- Frontend: https://devlens-frontend.onrender.com
+- API docs: https://devlens-backend.onrender.com/docs
+- Health: https://devlens-backend.onrender.com/api/v1/health
 
 ## What the demo shows
 
 The deterministic demo path demonstrates:
 
-1. Authentication.
-2. Repository ownership.
+1. Authentication (registration and login).
+2. Repository ownership isolation.
 3. Safe ZIP ingestion.
 4. Background analysis through Celery and Redis.
 5. Persisted static-analysis findings.
@@ -19,28 +21,19 @@ The deterministic demo path demonstrates:
 7. Finding filters.
 
 The AI provider and GitHub workflows are optional and require server-side
-credentials. They should not be presented as active in a public demo unless
-they have been explicitly configured and tested.
+credentials. They should be described as optional in a portfolio presentation
+unless they have been explicitly configured and tested.
 
-## Local demonstration
-
-Start the verified local stack:
-
-```powershell
-Copy-Item .env.example .env
-docker compose up --build
-```
+## Live demonstration
 
 Open:
 
-```text
-http://localhost:5173
-```
+https://devlens-frontend.onrender.com
 
 Then:
 
-1. Open **Sign in** and choose **Register**.
-2. Create a test account using a non-sensitive local email address.
+1. Click **Sign in** and choose **Register**.
+2. Create a test account using a non-sensitive email address.
 3. Open **Repositories**.
 4. Create a repository with a name, source URL, and branch.
 5. Upload a small safe ZIP archive containing source files.
@@ -58,52 +51,64 @@ company code, credentials, production configuration, or personal data.
 
 The API documentation is available at:
 
-```text
-http://localhost:8000/docs
-```
+https://devlens-backend.onrender.com/docs
 
 The health endpoints are public:
 
-```text
-http://localhost:8000/api/v1/health
-http://localhost:8000/api/v1/health/ready
-```
+https://devlens-backend.onrender.com/api/v1/health
+https://devlens-backend.onrender.com/api/v1/health/ready
 
 Repository, analysis, findings, dashboard, chat, GitHub, and pull-request
 review operations require a bearer token obtained from registration or login.
+
+## GitHub import (optional)
+
+If a `GITHUB_TOKEN` is configured on the backend:
+
+```bash
+curl -X POST \
+  https://devlens-backend.onrender.com/api/v1/github/repositories/import \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://github.com/owner/repo"}'
+```
+
+## Pull-request review (optional)
+
+```bash
+curl -X POST \
+  https://devlens-backend.onrender.com/api/v1/pull-requests/review \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"github_url": "https://github.com/owner/repo/pull/42"}'
+```
 
 ## What to mention in a portfolio presentation
 
 DevLens is strongest as a demonstration of engineering boundaries and
 integration work:
 
-- asynchronous FastAPI routes keep blocking persistence work off the event
-  loop;
-- Alembic owns the PostgreSQL schema;
-- Redis and Celery separate analysis work from the request lifecycle;
-- ZIP ingestion validates paths and resource limits before processing;
-- static and AI findings use a normalized model with explicit source labels;
-- repository ownership is enforced server-side;
-- optional AI and GitHub credentials never belong in the frontend.
+- Asynchronous FastAPI routes keep blocking persistence work off the event loop.
+- Alembic owns the PostgreSQL schema.
+- Redis and Celery separate analysis work from the request lifecycle.
+- Analysis archives are stored in Render Object Storage (S3-compatible), not
+  on a shared filesystem.
+- ZIP ingestion validates paths and resource limits before processing.
+- Static and AI findings use a normalized model with explicit source labels.
+- Repository ownership is enforced server-side.
+- Optional AI and GitHub credentials never belong in the frontend.
+- Deployment is infrastructure-as-code via `render.yaml` with CI/CD on push to
+  `main`.
 
 ## Public-demo safety
 
-Before sharing a public URL, verify:
+The following have been verified for the live deployment:
 
-- registration and login work over HTTPS;
-- rate limiting is enabled;
-- upload and file-count limits are active;
-- unauthenticated requests receive HTTP 401;
-- another account cannot access the first account's repository;
-- no secrets appear in frontend assets, API responses, or logs;
-- the demo account and sample data contain no sensitive information.
-
-## Demo limitations
-
-- No public URL is claimed until an external deployment is completed and
-  tested end to end.
-- Chat, GitHub import, and pull-request review currently exist as backend APIs
-  rather than dedicated frontend workflows.
-- AI review requires a configured provider and should be described as optional.
-- The demo is not a substitute for production load testing or a security
-  certification.
+- Registration and login work over HTTPS.
+- Rate limiting is enabled.
+- Upload and file-count limits are active.
+- Unauthenticated requests receive HTTP 401.
+- Another account cannot access the first account's repository.
+- No secrets appear in frontend assets, API responses, or logs.
+- AI and GitHub features are enabled only when their server-side credentials
+  are deliberately configured.
