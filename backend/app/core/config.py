@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     analysis_upload_dir: str = ".devlens/uploads"
     chat_max_files: int = 8
     chat_max_context_chars: int = 24_000
+    s3_endpoint_url: str | None = None
+    s3_bucket_name: str | None = None
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: str | None = None
+    s3_region: str | None = None
 
     @model_validator(mode="after")
     def validate_security_defaults(self) -> "Settings":
