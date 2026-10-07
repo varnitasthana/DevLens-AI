@@ -5,9 +5,13 @@ It combines safe repository ingestion, deterministic static analysis, optional
 AI review, persisted findings, background analysis jobs, and repository-aware
 chat behind authenticated APIs.
 
-> **Deployment status:** Deployment prepared for a public hosting environment.
-> No public URL is claimed yet because external hosting credentials and account
-> access have not been provided.
+> **Deployment status:** Deployed on Render with CI/CD via GitHub Actions.
+> - Live frontend: https://devlens-frontend.onrender.com
+> - API: https://devlens-backend.onrender.com
+> - OpenAPI: https://devlens-backend.onrender.com/docs
+> - Health: https://devlens-backend.onrender.com/api/v1/health
+> - Readiness: https://devlens-backend.onrender.com/api/v1/health/ready
+> - Managed PostgreSQL, Redis, and Render Object Storage are configured via `render.yaml`.
 
 ## Contents
 
@@ -210,18 +214,23 @@ build, and Compose configuration checks.
 
 ## Deployment
 
-The repository is containerized for deployment as five cooperating services:
-frontend/nginx, FastAPI, PostgreSQL, Redis, and a Celery worker. The backend
-image applies Alembic migrations before starting. A production deployment must
-provide managed PostgreSQL and Redis or equivalent private services, configure
-the environment variables from [.env.example](.env.example) through the
-platform's secret manager, restrict `CORS_ORIGINS` to the deployed frontend
-origin, and terminate HTTPS at the hosting platform or a trusted reverse proxy.
+The repository is containerized for deployment on Render as five cooperating
+services: frontend/nginx, FastAPI backend, Celery worker, managed PostgreSQL,
+and managed Redis, with Render Object Storage (S3-compatible) for analysis
+archives. The `render.yaml` at the repository root defines all services and
+resources. The backend image applies Alembic migrations before starting.
 
-The current repository includes a verified local Docker Compose deployment, but
-does not include a provider-specific live deployment configuration or a public
-URL. See [docs/deployment.md](docs/deployment.md) for the deployment checklist
-and [docs/demo.md](docs/demo.md) for the recruiter walkthrough.
+To deploy:
+
+1. Create a Render account and connect the GitHub repository.
+2. Set the `RENDER_DEPLOY_HOOK_URL` GitHub secret from your Render service
+   settings, or deploy directly via the Render dashboard from `render.yaml`.
+3. Configure optional secrets through the Render environment: `GITHUB_TOKEN`,
+   `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL`.
+4. Ensure `CORS_ORIGINS` is set to the deployed frontend origin.
+
+See [docs/deployment.md](docs/deployment.md) for the full deployment guide and
+[docs/demo.md](docs/demo.md) for the recruiter walkthrough.
 
 ## Limitations
 
