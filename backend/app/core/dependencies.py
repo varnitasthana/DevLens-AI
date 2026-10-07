@@ -12,15 +12,17 @@ from app.db.session import get_db_session
 
 
 def get_database_dsn(settings: Settings = Depends(get_settings)) -> str:
-    return settings.database_url.replace("postgresql+psycopg://", "postgresql://", 1)
+    url = settings.database_url
+    if url.startswith("postgresql+psycopg://"):
+        return url.replace("postgresql+psycopg://", "postgresql://", 1)
+    return url
 
 
 async def check_database(
     dsn: str = Depends(get_database_dsn),
 ) -> AsyncIterator[None]:
     def check() -> None:
-        psycopg_dsn = dsn.replace("postgresql+psycopg://", "postgresql://", 1)
-        with psycopg.connect(psycopg_dsn, connect_timeout=2) as connection:
+        with psycopg.connect(dsn, connect_timeout=2) as connection:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
                 cursor.fetchone()
@@ -36,6 +38,7 @@ async def check_database(
 
 
 security = HTTPBearer(auto_error=False)
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     session=Depends(get_db_session),
@@ -49,4 +52,5 @@ def get_current_user(
     if user is None or not user.is_active:
         raise HTTPException(status_code=401, detail="Invalid or expired token", headers={"WWW-Authenticate": "Bearer"})
     return user
+
 __all__ = ["check_database", "get_database_dsn", "get_db_session", "get_current_user"]
