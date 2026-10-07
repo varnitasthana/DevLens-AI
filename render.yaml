@@ -96,7 +96,6 @@ services:
     region: oregon
     plan: free
     runtime: docker
-    dockerfilePath: frontend/Dockerfile
     build:
       dockerfilePath: frontend/Dockerfile
       context: frontend
