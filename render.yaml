@@ -11,13 +11,24 @@ services:
       - key: APP_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: devlens-db
+          property: connectionString
       - key: REDIS_URL
-        sync: false
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
       - key: CELERY_BROKER_URL
-        sync: false
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
       - key: CELERY_RESULT_BACKEND
-        sync: false
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
       - key: AUTH_SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
@@ -59,18 +70,29 @@ services:
       - key: APP_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: devlens-db
+          property: connectionString
       - key: REDIS_URL
-        sync: false
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
       - key: CELERY_BROKER_URL
-        sync: false
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
       - key: CELERY_RESULT_BACKEND
-        sync: false
+        fromService:
+          name: devlens-redis
+          type: keyvalue
+          property: connectionString
       - key: AUTH_SECRET_KEY
         fromService:
           name: devlens-backend
           type: web
-          property: AUTH_SECRET_KEY
+          envVarKey: AUTH_SECRET_KEY
       - key: AI_BASE_URL
         sync: false
       - key: AI_API_KEY
