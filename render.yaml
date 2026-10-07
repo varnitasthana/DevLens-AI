@@ -18,17 +18,17 @@ services:
       - key: REDIS_URL
         fromService:
           name: devlens-redis
-          type: redis
+          type: keyvalue
           property: connectionString
       - key: CELERY_BROKER_URL
         fromService:
           name: devlens-redis
-          type: redis
+          type: keyvalue
           property: connectionString
       - key: CELERY_RESULT_BACKEND
         fromService:
           name: devlens-redis
-          type: redis
+          type: keyvalue
           property: connectionString
       - key: AUTH_SECRET_KEY
         generateValue: true
@@ -43,25 +43,15 @@ services:
       - key: AI_MODEL
         value: ${AI_MODEL}
       - key: S3_ENDPOINT_URL
-        fromObjectStore:
-          name: devlens-storage
-          property: endpointUrl
+        value: ${S3_ENDPOINT_URL}
       - key: S3_BUCKET_NAME
-        fromObjectStore:
-          name: devlens-storage
-          property: bucketName
+        value: ${S3_BUCKET_NAME}
       - key: S3_ACCESS_KEY_ID
-        fromObjectStore:
-          name: devlens-storage
-          property: accessKeyId
+        value: ${S3_ACCESS_KEY_ID}
       - key: S3_SECRET_ACCESS_KEY
-        fromObjectStore:
-          name: devlens-storage
-          property: secretAccessKey
+        value: ${S3_SECRET_ACCESS_KEY}
       - key: S3_REGION
-        fromObjectStore:
-          name: devlens-storage
-          property: region
+        value: ${S3_REGION}
     healthCheck:
       path: /api/v1/health/ready
       initialSeconds: 30
@@ -88,17 +78,17 @@ services:
       - key: REDIS_URL
         fromService:
           name: devlens-redis
-          type: redis
+          type: keyvalue
           property: connectionString
       - key: CELERY_BROKER_URL
         fromService:
           name: devlens-redis
-          type: redis
+          type: keyvalue
           property: connectionString
       - key: CELERY_RESULT_BACKEND
         fromService:
           name: devlens-redis
-          type: redis
+          type: keyvalue
           property: connectionString
       - key: AUTH_SECRET_KEY
         fromService:
@@ -114,25 +104,15 @@ services:
       - key: GITHUB_TOKEN
         value: ${GITHUB_TOKEN}
       - key: S3_ENDPOINT_URL
-        fromObjectStore:
-          name: devlens-storage
-          property: endpointUrl
+        value: ${S3_ENDPOINT_URL}
       - key: S3_BUCKET_NAME
-        fromObjectStore:
-          name: devlens-storage
-          property: bucketName
+        value: ${S3_BUCKET_NAME}
       - key: S3_ACCESS_KEY_ID
-        fromObjectStore:
-          name: devlens-storage
-          property: accessKeyId
+        value: ${S3_ACCESS_KEY_ID}
       - key: S3_SECRET_ACCESS_KEY
-        fromObjectStore:
-          name: devlens-storage
-          property: secretAccessKey
+        value: ${S3_SECRET_ACCESS_KEY}
       - key: S3_REGION
-        fromObjectStore:
-          name: devlens-storage
-          property: region
+        value: ${S3_REGION}
     autoDeploy: true
 
   - type: web
@@ -145,7 +125,7 @@ services:
       dockerfilePath: frontend/Dockerfile
       context: frontend
       args:
-        - VITE_API_BASE_URL=https://devlens-backend.onrender.com
+        - VITE_API_BASE_URL
     envVars:
       - key: VITE_API_BASE_URL
         fromService:
@@ -165,12 +145,14 @@ databases:
     databaseName: devlens
     user: devlens
 
-redis:
+keyvalue:
   - name: devlens-redis
     region: oregon
     plan: free
 
-objectStores:
-  - name: devlens-storage
-    region: oregon
-    plan: free
+# External S3-compatible object storage credentials (set as Render secrets)
+# S3_ENDPOINT_URL
+# S3_BUCKET_NAME
+# S3_ACCESS_KEY_ID
+# S3_SECRET_ACCESS_KEY
+# S3_REGION
