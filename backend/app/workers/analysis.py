@@ -6,6 +6,7 @@ from app.db.session import session_factory
 from app.models.repository import Repository
 from app.models.analysis import Analysis
 from app.services.analysis import StaticAnalysisService
+from app.services.storage import StorageService
 from app.workers.celery_app import celery_app
 
 
@@ -22,19 +23,24 @@ def analyze_repository_task(
     task,
     analysis_id: str,
     repository_id: str,
-    archive_path: str,
+    storage_key: str,
 ) -> None:
     settings = get_settings()
+    storage = StorageService(settings)
+    local_path: Path | None = None
     try:
         with session_factory() as session:
             repository = session.get(Repository, UUID(repository_id))
             if repository is None:
                 raise ValueError("Repository not found")
+            local_path = storage.download_to_temp(storage_key)
             StaticAnalysisService(session, settings).analyze_existing(
-                repository, UUID(analysis_id), Path(archive_path)
+                repository, UUID(analysis_id), local_path
             )
     finally:
-        Path(archive_path).unlink(missing_ok=True)
+        if local_path is not None:
+            local_path.unlink(missing_ok=True)
+        storage.cleanup(storage_key)
 
 
 @celery_app.task(name="devlens.mark_analysis_failed")
