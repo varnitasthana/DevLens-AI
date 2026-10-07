@@ -8,3 +8,4 @@ httpx==0.28.1
 redis==5.2.1
 celery==5.4.0
 alembic==1.14.1
+boto3==1.35.97
