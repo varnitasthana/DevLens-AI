@@ -70,7 +70,7 @@ services:
         fromService:
           name: devlens-backend
           type: web
-          envVarKey: AUTH_SECRET_KEY
+          property: AUTH_SECRET_KEY
       - key: AI_BASE_URL
         sync: false
       - key: AI_API_KEY
