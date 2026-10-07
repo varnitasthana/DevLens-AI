@@ -1,4 +1,9 @@
 services:
+  - type: keyvalue
+    name: devlens-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
   - type: web
     name: devlens-api
     runtime: docker
@@ -59,8 +64,3 @@ services:
 databases:
   - name: devlens-db
     plan: free
-
-  - name: devlens-redis
-    type: keyvalue
-    plan: free
-    maxmemoryPolicy: noeviction
