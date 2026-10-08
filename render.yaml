@@ -62,9 +62,7 @@ services:
     region: oregon
     plan: free
     runtime: docker
-    build:
-      dockerfilePath: backend/Dockerfile
-      context: backend
+    dockerfilePath: backend/Dockerfile
     command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
     envVars:
       - key: APP_ENV
