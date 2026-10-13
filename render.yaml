@@ -56,14 +56,15 @@ services:
       initialSeconds: 30
       periodSeconds: 10
     autoDeploy: true
-
   - type: worker
     name: devlens-worker
     region: oregon
     plan: free
     runtime: docker
-    dockerfilePath: backend/Dockerfile
-    command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
+    build:
+      dockerfilePath: backend/Dockerfile
+      context: .
+      command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
     envVars:
       - key: APP_ENV
         value: production
@@ -110,7 +111,6 @@ services:
       - key: S3_REGION
         sync: false
     autoDeploy: true
-
   - type: web
     name: devlens-frontend
     region: oregon
@@ -132,7 +132,6 @@ services:
       initialSeconds: 30
       periodSeconds: 10
     autoDeploy: true
-
 # External S3-compatible object storage credentials (set as Render secrets via Dashboard)
 # S3_ENDPOINT_URL
 # S3_BUCKET_NAME
