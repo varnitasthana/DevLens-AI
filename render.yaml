@@ -6,7 +6,7 @@ services:
     runtime: docker
     build:
       dockerfilePath: backend/Dockerfile
-      context: backend
+      context: .
     envVars:
       - key: APP_ENV
         value: production
