@@ -6,7 +6,7 @@ services:
     runtime: docker
     build:
       dockerfilePath: backend/Dockerfile
-      context: .
+      context: backend
     envVars:
       - key: APP_ENV
         value: production
@@ -32,7 +32,10 @@ services:
       - key: AUTH_SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://devlens-frontend.onrender.com
+        fromService:
+          name: devlens-frontend
+          type: web
+          property: RENDER_EXTERNAL_URL
       - key: GITHUB_TOKEN
         sync: false
       - key: AI_BASE_URL
@@ -63,8 +66,8 @@ services:
     runtime: docker
     build:
       dockerfilePath: backend/Dockerfile
-      context: .
-      command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
+      context: backend
+    startCommand: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
     envVars:
       - key: APP_ENV
         value: production
@@ -131,6 +134,20 @@ services:
       path: /
       initialSeconds: 30
       periodSeconds: 10
+    autoDeploy: true
+  - type: pserv
+    name: devlens-db
+    region: oregon
+    plan: free
+    runtime: postgresql
+    postgresMajorVersion: 16
+    autoDeploy: true
+  - type: keyvalue
+    name: devlens-redis
+    region: oregon
+    plan: free
+    runtime: redis
+    redisMajorVersion: 7
     autoDeploy: true
 # External S3-compatible object storage credentials (set as Render secrets via Dashboard)
 # S3_ENDPOINT_URL
