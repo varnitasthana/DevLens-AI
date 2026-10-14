@@ -5,7 +5,7 @@ services:
     plan: free
     runtime: docker
     build:
-      dockerfilePath: backend/Dockerfile
+      dockerfilePath: Dockerfile
       context: backend
     envVars:
       - key: APP_ENV
@@ -65,7 +65,7 @@ services:
     plan: free
     runtime: docker
     build:
-      dockerfilePath: backend/Dockerfile
+      dockerfilePath: Dockerfile
       context: backend
     startCommand: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
     envVars:
@@ -120,7 +120,7 @@ services:
     plan: free
     runtime: docker
     build:
-      dockerfilePath: frontend/Dockerfile
+      dockerfilePath: Dockerfile
       context: frontend
       args:
         - VITE_API_BASE_URL
