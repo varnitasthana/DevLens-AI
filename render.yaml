@@ -32,10 +32,7 @@ services:
       - key: AUTH_SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        fromService:
-          name: devlens-frontend
-          type: web
-          property: RENDER_EXTERNAL_URL
+        value: "*"
       - key: GITHUB_TOKEN
         sync: false
       - key: AI_BASE_URL
