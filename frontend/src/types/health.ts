@@ -1,5 +1,6 @@
 export type HealthResponse = {
   status: "ok";
-  service: string;
+  service?: string;
+  version?: string;
   environment: string;
 };

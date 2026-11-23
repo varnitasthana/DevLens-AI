@@ -7,6 +7,11 @@ import { App } from "./App";
 
 const queryClient = new QueryClient();
 
+const redirect = new URLSearchParams(window.location.search).get("redirect");
+if (redirect) {
+  window.history.replaceState(null, "", `/DevLens-AI/${redirect}`);
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

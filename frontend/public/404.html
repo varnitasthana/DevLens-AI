@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script>
+      const base = "/DevLens-AI/";
+      const path = window.location.pathname.replace(base, "");
+      window.location.replace(base + "?redirect=" + encodeURIComponent(path) + window.location.search + window.location.hash);
+    </script>
+  </head>
+  <body></body>
+</html>
