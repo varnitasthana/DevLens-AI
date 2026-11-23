@@ -108,3 +108,68 @@ export async function createAnalysis(repositoryId: string, file: File): Promise<
   if (!response.ok) throw new Error(`Analysis request failed (${response.status})`);
   return response.json() as Promise<Analysis>;
 }
+
+export type GitHubImportResult = {
+  id: string;
+  name: string;
+  source_url: string;
+  default_branch: string;
+  file_count: number;
+  status: string;
+};
+
+export type ChatCitation = {
+  file: string;
+  line_start: number;
+  line_end: number;
+};
+
+export type ChatResult = {
+  answer: string;
+  citations: ChatCitation[];
+};
+
+export type PullRequestIssue = {
+  file: string;
+  severity: string;
+  issue: string;
+  suggested_fix: string;
+  source: string;
+};
+
+export type PullRequestReview = {
+  summary: string;
+  issues: PullRequestIssue[];
+  testing_recommendations: string[];
+};
+
+export type GeneratedTest = {
+  review_banner: string;
+  file_name: string;
+  test_code: string;
+  scenarios: string[];
+};
+
+export const importGitHubRepository = (url: string, branch?: string) =>
+  request<GitHubImportResult>("/api/v1/github/repositories/import", {
+    method: "POST",
+    body: JSON.stringify({ url, branch: branch || null }),
+  });
+
+export const chatWithRepository = (repositoryId: string, question: string) =>
+  request<ChatResult>(`/api/v1/repositories/${repositoryId}/chat`, {
+    method: "POST",
+    body: JSON.stringify({ question }),
+  });
+
+export const reviewPullRequest = (githubUrl: string) =>
+  request<PullRequestReview>("/api/v1/pull-requests/review", {
+    method: "POST",
+    body: JSON.stringify({ github_url: githubUrl }),
+  });
+
+export const generateTest = (fileName: string, source: string) =>
+  request<GeneratedTest>("/api/v1/test-generation", {
+    method: "POST",
+    body: JSON.stringify({ file_name: fileName, source }),
+  });

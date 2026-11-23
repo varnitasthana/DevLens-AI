@@ -18,6 +18,7 @@ export function AppLayout({ children }: PropsWithChildren) {
         <nav className="app-nav">
           <NavLink to="/">Dashboard</NavLink>
           <NavLink to="/repositories">Repositories</NavLink>
+          <NavLink to="/github-tools">GitHub tools</NavLink>
           {authenticated ? (
             <button className="button-muted" onClick={() => { clearAuthToken(); window.location.reload(); }}>Sign out</button>
           ) : (

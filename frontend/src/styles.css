@@ -71,6 +71,23 @@ body {
   gap: 1rem;
 }
 
+.tool-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  margin-top: 2rem;
+}
+
+.tool-grid .repository-form {
+  max-width: none;
+  width: 100%;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .filter-bar {
   display: grid;
   gap: 0.6rem;

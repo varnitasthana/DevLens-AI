@@ -5,6 +5,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { FindingsPage } from "./pages/FindingsPage";
 import { RepositoriesPage } from "./pages/RepositoriesPage";
 import { AuthPage } from "./pages/AuthPage";
+import { GitHubToolsPage } from "./pages/GitHubToolsPage";
 import "./styles.css";
 
 export function App() {
@@ -16,6 +17,7 @@ export function App() {
         <Route path="/repositories/:repositoryId/analysis" element={<AnalysisPage />} />
         <Route path="/analyses/:analysisId/findings" element={<FindingsPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/github-tools" element={<GitHubToolsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppLayout>

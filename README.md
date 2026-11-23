@@ -12,6 +12,8 @@ chat behind authenticated APIs.
 > - Health: https://devlens-backend.onrender.com/api/v1/health
 > - Readiness: https://devlens-backend.onrender.com/api/v1/health/ready
 > - Managed PostgreSQL, Redis, and Render Object Storage are configured via `render.yaml`.
+>
+> **Recruiter live demo:** https://devlens-frontend.onrender.com
 
 ## Contents
 
@@ -238,9 +240,12 @@ See [docs/deployment.md](docs/deployment.md) for the full deployment guide and
 - GitHub API calls require suitable server-side credentials and were not
   externally live-verified.
 - Chat retrieval is bounded keyword retrieval, not vector search.
-- The frontend does not yet provide chat, GitHub import, or pull-request review
-  pages.
 - TLS termination, secret rotation, monitoring, and incident response belong
   to the deployment environment.
 - No production-scale load benchmark or full browser end-to-end test suite is
   included.
+
+## Contributor
+
+- **Varnit Asthana** — Product design, full-stack implementation, deployment,
+  and repository maintenance.
