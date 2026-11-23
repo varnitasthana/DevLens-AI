@@ -13,7 +13,7 @@ chat behind authenticated APIs.
 > - Readiness: https://devlens-backend.onrender.com/api/v1/health/ready
 > - Managed PostgreSQL, Redis, and Render Object Storage are configured via `render.yaml`.
 >
-> **Recruiter live demo:** https://devlens-frontend.onrender.com
+> **Recruiter live demo:** https://varnitasthana.github.io/DevLens-AI/
 
 ## Contents
 
